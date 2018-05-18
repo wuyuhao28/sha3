@@ -5,7 +5,7 @@
 //#include "device_functions.h"
 //#include "algri.h"
 //#include <stdio.h>
-//#include "atomic.h"
+#include "atomic.h"
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID, uint8_t *tmpMat);
 cudaError_t matrixMul_CuBlas(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, AlgriMatList* matList_int8, uint8_t *sequence);
@@ -159,7 +159,7 @@ __global__ void Matrix_Mul(int8_t *md, int8_t *nd, int8_t *pd, uint8_t index)
 	pd[(by*blockDim.y + ty)*BLOCK_SIZE + bx*blockDim.x + tx] = ((mulResult & 0xFF) + ((mulResult >> 8) & 0xFF)) & 0xFF;
 }
 
-__global__ void matrixExtraCal(int8_t *sourceMatrix)
+__global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 {
 	int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
 	int curRow = threadIdx.x;
@@ -168,7 +168,9 @@ __global__ void matrixExtraCal(int8_t *sourceMatrix)
 	if (tid < BLOCK_SIZE * THREAD_SIZE)
 	{
 		int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
-		sourceMatrix[curRow * BLOCK_SIZE + curCol] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
+		int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
+		tmpMatrix[curRow * BLOCK_SIZE + curCol] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
+		sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
 	}
 }
 
@@ -185,8 +187,11 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	int8_t beta = 0;
 
 	int matrixSize = sizeof(int8_t) * 256 * 256;
-	int8_t *source, *tmp, *tmpSource;
-	source = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
+	//int8_t *source;
+	int *source;
+	int8_t *tmp, *tmpSource;
+	//source = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
+	source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
 	tmp = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
 	cudaStatus = cudaMemcpy(tmp, tmpMatrix->d, matrixSize, cudaMemcpyHostToDevice);
@@ -217,18 +222,37 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			//Matrix_Mul << <grid, blocks >> >(tmp, matList, source, sequence[j]);
 			//cudaDeviceSynchronize();
 
-
 			cublasStatus_t cublasSatus = cublasGemmEx(handle, CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
-				&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
+				(void *)&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)tmp, CUDA_R_8I, 256,
-				&beta, (void *)source, CUDA_R_32I, 256,
+				(void *)&beta, (void *)source, CUDA_R_32I, 256,
 				CUDA_R_8I, CUBLAS_GEMM_DFALT);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
 				printf("cublasSgemm_v2 error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
-			matrixExtraCal << <BLOCK_SIZE, THREAD_SIZE >> >(source);
+			matrixExtraCal << <BLOCK_SIZE, THREAD_SIZE >> >(source, tmp);
 			cudaDeviceSynchronize();
+
+			/*cublasStatus_t cublasGemmEx(cublasHandle_t handle,
+				cublasOperation_t transa,
+				cublasOperation_t transb,
+				int m,
+				int n,
+				int k,
+				const void    *alpha,
+				const void     *A,
+				cudaDataType_t Atype,
+				int lda,
+				const void     *B,
+				cudaDataType_t Btype,
+				int ldb,
+				const void    *beta,
+				void           *C,
+				cudaDataType_t Ctype,
+				int ldc,
+				cudaDataType_t computeType,
+				cublasGemmAlgo_t algo)*/
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 			{
@@ -236,9 +260,9 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				return cudaStatus;
 			}
 
-			tmpSource = tmp;
+			/*tmpSource = tmp;
 			tmp = source;
-			source = tmpSource;
+			source = tmpSource;*/
 			
 			end_t = GetMillsec();
 			if (i ==0 && j == 0)
@@ -247,8 +271,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			}
 		}
 	}
-	////////////////////////////////////////////////////////////////////////
 	cublasDestroy(handle);
+	////////////////////////////////////////////////////////////////////////
 	end = GetMillsec();
 	printf("\t kernel time: %lfms\n", (end - start));
 	/*start = clock();
