@@ -5,7 +5,7 @@
 //#include "device_functions.h"
 //#include "algri.h"
 //#include <stdio.h>
-#include "atomic.h"
+//#include "atomic.h"
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID, uint8_t *tmpMat);
 cudaError_t matrixMul_CuBlas(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, AlgriMatList* matList_int8, uint8_t *sequence);
