@@ -217,11 +217,12 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 			cublasHandle_t handle;
 			cublasCreate(&handle);
+			cublasGemmAlgo_t algo = 0;
 			cublasStatus_t cublasSatus = cublasGemmEx(handle, CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
 				&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)tmp, CUDA_R_8I, 256,
 				&beta, (void *)source, CUDA_R_32I, 256,
-				CUDA_R_8I, 0);
+				CUDA_R_8I, algo);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
 				printf("cublasSgemm_v2 error!, j: %d cublasError: %d\n", j, cublasSatus);
