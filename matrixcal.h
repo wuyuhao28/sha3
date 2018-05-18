@@ -9,7 +9,8 @@
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 
-#include <cublas_v2.h> //cuda�Դ��⺯��
+#include <cublas_v2.h> //cuda×Ô´ø¿âº¯Êý
+#include <cublas.h>
 #include <sys/time.h>
 #include <time.h>
 #include <stdio.h>
