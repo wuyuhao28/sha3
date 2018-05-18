@@ -221,7 +221,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)tmp, CUDA_R_8I, 256,
 				&beta, (void *)source, CUDA_R_32I, 256,
-				CUDA_R_8I, CUBLAS_GEMM_DEFAULT);
+				CUDA_R_8I, CUBLAS_GEMM_DEFAULT_TENSOR_OP);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
 				printf("cublasSgemm_v2 error!, j: %d cublasError: %d\n", j, cublasSatus);
