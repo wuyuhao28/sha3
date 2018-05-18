@@ -198,6 +198,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 	//////////////////////////////////single kernel loop////////////////////////////////
 	start = GetMillsec();
+	cublasHandle_t handle;
+	cublasCreate(&handle);
 	for (int i = 0; i < LOOP_COUNT; i++)
 	{
 		for (int j = 0; j < SEQUENCE_COUNT; j++)
@@ -215,14 +217,12 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			//Matrix_Mul << <grid, blocks >> >(tmp, matList, source, sequence[j]);
 			//cudaDeviceSynchronize();
 
-			cublasHandle_t handle;
-			cublasCreate(&handle);
-			cublasGemmAlgo_t algo = CUBLAS_GEMM_DEFAULT;
+
 			cublasStatus_t cublasSatus = cublasGemmEx(handle, CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
 				&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)tmp, CUDA_R_8I, 256,
 				&beta, (void *)source, CUDA_R_32I, 256,
-				CUDA_R_8I, algo);
+				CUDA_R_8I, CUBLAS_GEMM_DFALT);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
 				printf("cublasSgemm_v2 error!, j: %d cublasError: %d\n", j, cublasSatus);
@@ -248,6 +248,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 		}
 	}
 	////////////////////////////////////////////////////////////////////////
+	cublasDestroy(handle);
 	end = GetMillsec();
 	printf("\t kernel time: %lfms\n", (end - start));
 	/*start = clock();
