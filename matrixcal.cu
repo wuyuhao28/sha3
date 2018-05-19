@@ -188,10 +188,11 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 	int matrixSize = sizeof(int8_t) * 256 * 256;
 	//int8_t *source;
-	int *source;
+	//int *source;
+	__shared__ int source[sizeof(int) * 256 * 256];
 	int8_t *tmp, *tmpSource;
 	//source = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
-	source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
+	//source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
 	tmp = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
 	cudaStatus = cudaMemcpy(tmp, tmpMatrix->d, matrixSize, cudaMemcpyHostToDevice);
