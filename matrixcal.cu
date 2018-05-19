@@ -200,8 +200,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
-	end = GetMillsec();
-	printf("\n\t kernel copy time: %lfms\n", (end - start));
+	//end = GetMillsec();
+	//printf("\n\t kernel copy time: %lfms\n", (end - start));
 
 	//////////////////////////////////single kernel loop////////////////////////////////
 	start = GetMillsec();
