@@ -183,8 +183,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	start = GetMillsec();
 	cudaStatus = cudaSetDevice(threadID);
 
-	int8_t alpha = 1;
-	int8_t beta = 0;
+	int alpha = 1;
+	int beta = 0;
 
 	int matrixSize = sizeof(int8_t) * 256 * 256;
 	//int8_t *source;
@@ -229,7 +229,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				CUDA_R_8I, CUBLAS_GEMM_DFALT);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
-				printf("cublasSgemm_v2 error!, j: %d cublasError: %d\n", j, cublasSatus);
+				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
 			matrixExtraCal << <BLOCK_SIZE, THREAD_SIZE >> >(source, tmp);
 			cudaDeviceSynchronize();
