@@ -101,6 +101,7 @@ int main(void)
 	matList_int8 = new AlgriMatList;
 	matList_int8->init(extSeed);
 
+	cudaSetDevice(0);
 	cublasCreate(&g_handle);
 
 	start_t = GetMillsec();

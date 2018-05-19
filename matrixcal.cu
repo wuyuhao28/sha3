@@ -229,6 +229,12 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			{
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
+			end_t = GetMillsec();
+			if (i == 0 && j == 0)
+			{
+				printf("\t first kernel time1: %lfms\n", (end_t - start_t));
+			}
+
 			matrixExtraCal << <BLOCK_SIZE, THREAD_SIZE >> >(source, tmp);
 			cudaDeviceSynchronize();
 
