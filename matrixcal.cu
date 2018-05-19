@@ -249,7 +249,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			{
 				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
 			}
-			if ((end_t - start_t) > 100)
+			if ((end_t - start_t) > 5.0)
 			{
 				printf("\t kernel time: %lfms  i: %d, j: %d\n", (end_t - start_t), i, j);
 			}
