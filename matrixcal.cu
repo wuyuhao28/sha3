@@ -405,13 +405,6 @@ void iter(
 		}
 	}*/
 
-	end = GetMillsec();
-	std::cout << "\t\tTime for getting MulMatix: "
-		<< (end - start) << "ms"
-		<< std::endl;
-
-
-	start_t = GetMillsec();
 	mat->add(res[0], res[1]);
 	mat->add(*mat, res[2]);
 	mat->add(*mat, res[3]);
@@ -424,8 +417,11 @@ void iter(
 	delete mat;
 	delete[] res;
 	free(ctx);
-	end_t = GetMillsec();
-	printf("iter: iter tail time: %lf\n", end_t - start_t);
+
+	end = GetMillsec();
+	std::cout << "\t\tTime for getting MulMatix: "
+		<< (end - start) << "ms"
+		<< std::endl;
 }
 
 

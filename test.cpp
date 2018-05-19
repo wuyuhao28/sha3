@@ -121,14 +121,14 @@ int main(void)
 
         iter(g_msg, 32, results,i);
 
-        int j = 0;
-        for (; j < 32; j++) {
-            // printf("0x%02x, ",results[i][j]);
-            if (results[j] != g_results[j]) {
-				printf("Results does not match, i: %d , j : %d \n", i, j);
-                break;
-            }
-        }
+    //    int j = 0;
+    //    for (; j < 32; j++) {
+    //        // printf("0x%02x, ",results[i][j]);
+    //        if (results[j] != g_results[j]) {
+				//printf("Results does not match, i: %d , j : %d \n", i, j);
+    //            break;
+    //        }
+    //    }
     }
 	delete matList_int8;
 
