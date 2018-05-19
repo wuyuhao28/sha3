@@ -245,14 +245,14 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			source = tmpSource;*/
 			
 			end_t = GetMillsec();
-			if (i ==0 && j == 0)
-			{
+			//if (i ==0 && j == 0)
+			//{
 				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
-			}
-			if ((end_t - start_t) > 1)
-			{
-				printf("\t large kernel time: %lfms  i: %d, j: %d\n", (end_t - start_t), i, j);
-			}
+			//}
+			//if ((end_t - start_t) > 1)
+			//{
+			//	printf("\t large kernel time: %lfms  i: %d, j: %d\n", (end_t - start_t), i, j);
+			//}
 		}
 	}
 	cublasDestroy(handle);
