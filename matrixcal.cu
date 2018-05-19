@@ -237,24 +237,24 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				printf("\t first kernel time1: %lfms\n", (end_t - start_t));
 			}
 
-			//matrixExtraCal << <256, 256 >> >(source, tmp);
-			//cudaDeviceSynchronize();
+			matrixExtraCal << <256, 256 >> >(source, tmp);
+			cudaDeviceSynchronize();
 
-			//if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-			//{
-			//	printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-			//	return cudaStatus;
-			//}
+			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+			{
+				printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
+				return cudaStatus;
+			}
 
-			///*tmpSource = tmp;
-			//tmp = source;
-			//source = tmpSource;*/
-			//
-			//end_t = GetMillsec();
-			//if (i ==0 && j == 0)
-			//{
-			//	printf("\t first kernel time2: %lfms\n", (end_t - start_t));
-			//}
+			/*tmpSource = tmp;
+			tmp = source;
+			source = tmpSource;*/
+			
+			end_t = GetMillsec();
+			if (i ==0 && j == 0)
+			{
+				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
+			}
 		}
 	}
 	
