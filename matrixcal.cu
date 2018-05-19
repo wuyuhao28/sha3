@@ -356,7 +356,7 @@ void iter(
 			{
 				cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
 					(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
-					(void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
+					(void *)(g_device_matList[threadID] + sequence[j] * matrixSize), CUDA_R_8I, 256,
 					(void *)&beta, (void *)source, CUDA_R_32I, 256,
 					CUDA_R_32I, CUBLAS_GEMM_DFALT);
 
@@ -411,8 +411,6 @@ void iter(
 			return;
 		}
 	}*/
-
-	memory_pool->CFree(threadID, matList);
 
 	end = GetMillsec();
 	std::cout << "\t\tTime for getting MulMatix: "

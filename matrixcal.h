@@ -16,6 +16,7 @@
 #include <stdio.h>
 
 extern cublasHandle_t g_handle[6];
+extern int8_t* g_device_matList[6];
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence);
 //__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);

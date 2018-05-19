@@ -13,6 +13,7 @@
 AlgriMatList* matList_int8;
 int g_deviceNum;
 cublasHandle_t g_handle[6];
+int8_t* g_device_matList[6];
 
 static uint8_t g_msg[32] = {
         0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
@@ -106,8 +107,8 @@ int main(void)
 		cudaSetDevice(i);
 		cublasCreate(&g_handle[i]);
 
-		int8_t* matList = (int8_t *)memory_pool->CMalloc(i, sizeof(int8_t) * 256 * 256 * 256);
-		cudaError_t cudaStatus = cudaMemcpy(matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+		g_device_matList[i] = (int8_t *)memory_pool->CMalloc(i, sizeof(int8_t) * 256 * 256 * 256);
+		cudaError_t cudaStatus = cudaMemcpy(g_device_matList[i], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 		if (cudaStatus != cudaSuccess)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
@@ -182,6 +183,7 @@ int main(void)
 	{
 		cudaSetDevice(i);
 		cublasDestroy(g_handle[i]);
+		memory_pool->CFree(i, g_device_matList[i]);
 	}
 	
     return 0;
