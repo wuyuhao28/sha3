@@ -277,7 +277,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	//
 
 	memory_pool->CFree(threadID, tmp);
-	memory_pool->CFree(threadID, source);
+	//memory_pool->CFree(threadID, source);
 
 	end = GetMillsec();
 	printf("\t kernel tail time: %lfms\n", (end - start));
