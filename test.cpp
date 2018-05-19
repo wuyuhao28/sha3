@@ -115,28 +115,30 @@ int main(void)
 	
 
 	/////////////////////////////////////////////////////////////////////////////////////
-	//start_t = GetMillsec();
+	start_t = GetMillsec();
 
- //   for (int i = 0;i<1 ; i++) {	
+    for (int i = 0;i<1 ; i++) {	
 
- //       iter(g_msg, 32, results,i);
+        iter(g_msg, 32, results,i);
 
- //       int j = 0;
- //       for (; j < 32; j++) {
- //           // printf("0x%02x, ",results[i][j]);
- //           if (results[j] != g_results[j]) {
-	//			printf("Results does not match, i: %d , j : %d \n", i, j);
- //               break;
- //           }
- //       }
- //   }
+        int j = 0;
+        for (; j < 32; j++) {
+            // printf("0x%02x, ",results[i][j]);
+            if (results[j] != g_results[j]) {
+				printf("Results does not match, i: %d , j : %d \n", i, j);
+                break;
+            }
+        }
+    }
 	//delete matList_int8;
 
-	//end_t = GetMillsec();
-	//std::cout << "all time : "
-	//	<< end_t - start_t << "ms"
-	//	<< std::endl;
+	end_t = GetMillsec();
+	std::cout << "all time : "
+		<< end_t - start_t << "ms"
+		<< std::endl;
 
+
+	printf("\n\n Multi process in.\n");
 	/////////////////////////////////////////////////////////////////////////////////
 	start_t = GetMillsec();
 	//while (1)
@@ -177,6 +179,9 @@ int main(void)
 
 		//usleep(10000);
 	//}
+
+
+
 	delete matList_int8;
 
 	for (int i = 0; i < g_deviceNum; i++)
