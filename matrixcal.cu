@@ -205,6 +205,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	start = GetMillsec();
 	cublasHandle_t handle;
 	cublasCreate(&handle);
+	end = GetMillsec();
+	printf("\t\t kernel time test: %lfms\n", (end - start));
 	for (int i = 0; i < LOOP_COUNT; i++)
 	{
 		for (int j = 0; j < SEQUENCE_COUNT; j++)
@@ -249,13 +251,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			{
 				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
 			}*/
-
-			end = GetMillsec();
-			printf("\t\t kernel time test: %lfms\n", (end - start));
 		}
 	}
-	end = GetMillsec();
-	printf("\t\t kernel time test: %lfms\n", (end - start));
 	cublasDestroy(handle);
 	////////////////////////////////////////////////////////////////////////
 	end = GetMillsec();
