@@ -226,7 +226,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				(void *)&alpha, (void *)tmp, CUDA_R_8I, 256,
 				(void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)&beta, (void *)source, CUDA_R_32I, 256,
-				CUDA_R_32I, CUBLAS_GEMM_DFALT);
+				CUDA_R_8I, CUBLAS_GEMM_DFALT);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
@@ -254,6 +254,10 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			if (i ==0 && j == 0)
 			{
 				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
+			}
+			if ((end_t - start_t) > 100)
+			{
+				printf("\t kernel time: %lfms  i: %d, j: %d\n", (end_t - start_t), i, j);
 			}
 		}
 	}
