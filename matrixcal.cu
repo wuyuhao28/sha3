@@ -175,7 +175,7 @@ __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 }
 
 
-cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
+__global__ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
 	uint8_t *sequence, uint32_t threadID, int8_t *tmpMulMat)
 {
 	double start, end, start_t, end_t;
