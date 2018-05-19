@@ -183,9 +183,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	start = GetMillsec();
 	cudaStatus = cudaSetDevice(threadID);
 
-	int8_t *alpha;
-	*alpha = 1;
-	int8_t *beta = 0;
+	int alpha = 1;
+	int beta = 0;
 
 	int matrixSize = sizeof(int8_t) * 256 * 256;
 	//int8_t *source;
@@ -224,10 +223,10 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			//cudaDeviceSynchronize();
 
 			cublasStatus_t cublasSatus = cublasGemmEx(handle, CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
-				(void *)alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
+				(void *)&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)tmp, CUDA_R_8I, 256,
-				(void *)beta, (void *)source, CUDA_R_32I, 256,
-				CUDA_R_8I, CUBLAS_GEMM_DFALT);
+				(void *)&beta, (void *)source, CUDA_R_32I, 256,
+				CUDA_R_32I, CUBLAS_GEMM_DFALT);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
 			{
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
@@ -235,25 +234,11 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			matrixExtraCal << <BLOCK_SIZE, THREAD_SIZE >> >(source, tmp);
 			cudaDeviceSynchronize();
 
-			/*cublasStatus_t cublasGemmEx(cublasHandle_t handle,
-				cublasOperation_t transa,
-				cublasOperation_t transb,
-				int m,
-				int n,
-				int k,
-				const void    *alpha,
-				const void     *A,
-				cudaDataType_t Atype,
-				int lda,
-				const void     *B,
-				cudaDataType_t Btype,
-				int ldb,
-				const void    *beta,
-				void           *C,
-				cudaDataType_t Ctype,
-				int ldc,
-				cudaDataType_t computeType,
-				cublasGemmAlgo_t algo)*/
+			/*cublasStatus_t cublasGemmEx(cublasHandle_t handle, cublasOperation_t transa, cublasOperation_t transb, int m, int n, int k,
+				const void    *alpha, const void     *A, cudaDataType_t Atype, int lda,
+				const void     *B, cudaDataType_t Btype, int ldb,
+				const void    *beta, void           *C, cudaDataType_t Ctype, int ldc,
+				cudaDataType_t computeType, cublasGemmAlgo_t algo)*/
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 			{
