@@ -178,6 +178,8 @@ __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
 	uint8_t *sequence, uint32_t threadID)
 {
+	double t1, t2;
+	t1 = GetMillsec();
 	double start, end, start_t, end_t;
 	cudaError_t cudaStatus;
 	start = GetMillsec();
@@ -231,11 +233,11 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
 
-			end_t = GetMillsec();
-			if (i == 0 && j == 0)
-			{
-				printf("\t first kernel time1: %lfms\n", (end_t - start_t));
-			}
+			//end_t = GetMillsec();
+			//if (i == 0 && j == 0)
+			//{
+			//	printf("\t first kernel time1: %lfms\n", (end_t - start_t));
+			//}
 
 			matrixExtraCal << <256, 256 >> >(source, tmp);
 			cudaDeviceSynchronize();
@@ -282,7 +284,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 	end = GetMillsec();
 	printf("\t kernel tail time: %lfms\n", (end - start));
-
+	t2 = GetMillsec();
+	printf("\t kernel total time: %lfms\n", (t2 - t1));
 	return cudaStatus;
 }
 
@@ -336,15 +339,12 @@ void iter(
 
 	start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {
-		start_t = GetMillsec();
 		uint8_t sequence[128];
 		rhash_sha3_256_init(ctx);
 		rhash_sha3_update(ctx, msg + (len*k / 4), len / 4);
 		rhash_sha3_final(ctx, sequence);
 		Mat256x256i8 *tmp = new Mat256x256i8;
 		tmp->toIdentityMatrix();
-		end_t = GetMillsec();
-		printf("iter: matrixMul prepare time: %lf\n", end_t - start_t);
 		//GPU process
 		start_t = GetMillsec();
 		cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID);
@@ -354,11 +354,8 @@ void iter(
 		end_t = GetMillsec();
 		printf("iter: matrixMul process time: %lf\n", end_t - start_t);
 
-		start_t = GetMillsec();
 		res[k].copyFrom(*mat);
 		delete tmp;
-		end_t = GetMillsec();
-		printf("iter: matrixMul tail time: %lf\n", end_t - start_t);
 	}
 	end_t = GetMillsec();
 	printf("iter: kernel calculate time: %lf\n", end_t - start_t);
