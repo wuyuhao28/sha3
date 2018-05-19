@@ -131,10 +131,10 @@ int main(void)
 		<< std::endl;
 
 	/////////////////////////////////////////////////////////////////////////////////
-	/*while (1)
-	{
-		pthread_t calculateThread[4];
-		int threadNum = 4;
+	//while (1)
+	//{
+		pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * g_deviceNum);
+		int threadNum = g_deviceNum;
 		pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
 		for (int i = 0; i < threadNum; i++)
 		{
@@ -167,9 +167,9 @@ int main(void)
 			<< end_t - start_t << "ms"
 			<< std::endl;
 
-		usleep(10000);
-	}
-	delete matList_int8;*/
+		//usleep(10000);
+	//}
+	delete matList_int8;
 
 	for (int i = 0; i < g_deviceNum; i++)
 	{
