@@ -12,7 +12,7 @@
 
 AlgriMatList* matList_int8;
 int g_deviceNum;
-cublasHandle_t g_handle;
+cublasHandle_t g_handle[6];
 
 static uint8_t g_msg[32] = {
         0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
@@ -104,7 +104,7 @@ int main(void)
 	for (int i = 0; i < g_deviceNum; i++)
 	{
 		cudaSetDevice(i);
-		cublasCreate(&g_handle);
+		cublasCreate(&g_handle[i]);
 	}
 	
 
@@ -171,6 +171,11 @@ int main(void)
 	}
 	delete matList_int8;*/
 
-	cublasDestroy(g_handle);
+	for (int i = 0; i < g_deviceNum; i++)
+	{
+		cudaSetDevice(i);
+		cublasDestroy(g_handle[i]);
+	}
+	
     return 0;
 }
