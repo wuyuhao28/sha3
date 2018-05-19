@@ -181,10 +181,10 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	double t1, t2;
 	t1 = GetMillsec();
 	double start, end, start_t, end_t;
-	cudaError_t cudaStatus;
 	start = GetMillsec();
-	cudaStatus = cudaSetDevice(threadID);
-
+	cudaSetDevice(threadID);
+	cudaError_t cudaStatus;
+	
 	int alpha = 1;
 	int beta = 0;
 
