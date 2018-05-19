@@ -261,11 +261,11 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	}
 	
 	////////////////////////////////////////////////////////////////////////
-	//end = GetMillsec();
-	//printf("\t kernel time: %lfms\n", (end - start));
+	end = GetMillsec();
+	printf("\t kernel time: %lfms\n", (end - start));
 
-	//start = GetMillsec();
-	//cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
+	start = GetMillsec();
+	cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
