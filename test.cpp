@@ -113,108 +113,13 @@ int main(void)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
 	
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	start_t = GetMillsec();
 
     for (int i = 0;i<1 ; i++) {	
 
-        //iter(g_msg, 32, results,i);
-		
-		int len = 32;
-		Mat256x256i8 *res = new Mat256x256i8[4];
-		Mat256x256i8 *mat = new Mat256x256i8;
-		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
-
-		double start, end;
-		start = GetMillsec();
-
-		double start_t, end_t;
-		cudaError_t cudaStatus;
-		start_t = GetMillsec();
-		for (int k = 0; k < 4; k++) {
-			uint8_t sequence[128];
-			rhash_sha3_256_init(ctx);
-			rhash_sha3_update(ctx, g_msg + (len*k / 4), len / 4);
-			rhash_sha3_final(ctx, sequence);
-			Mat256x256i8 *tmp = new Mat256x256i8;
-			tmp->toIdentityMatrix();
-
-			int threadID = 0;
-			double t1, t2;
-			t1 = GetMillsec();
-			cudaSetDevice(threadID);
-			cudaError_t cudaStatus;
-
-			int alpha = 1;
-			int beta = 0;
-
-			int matrixSize = sizeof(int8_t) * 256 * 256;
-			int *source;
-			int8_t *tmpMatrix, *tmpSource;
-			source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
-			tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
-
-			cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
-			if (cudaStatus != cudaSuccess)
-				printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-			for (int i = 0; i < LOOP_COUNT; i++)
-			{
-				for (int j = 0; j < SEQUENCE_COUNT; j++)
-				{
-					cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
-						(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
-						(void *)(g_device_matList[threadID] + sequence[j] * matrixSize), CUDA_R_8I, 256,
-						(void *)&beta, (void *)source, CUDA_R_32I, 256,
-						CUDA_R_32I, CUBLAS_GEMM_DFALT);
-
-					if (cublasSatus != CUBLAS_STATUS_SUCCESS)
-					{
-						printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
-					}
-
-					matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
-					cudaDeviceSynchronize();
-
-					if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-					{
-						printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-					}
-				}
-			}
-
-			cudaStatus = cudaMemcpy(mat->d, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
-			if (cudaStatus != cudaSuccess)
-				printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-
-			memory_pool->CFree(threadID, tmpMatrix);
-			memory_pool->CFree(threadID, source);
-
-			t2 = GetMillsec();
-			printf("\t kernel total time: %lfms\n", (t2 - t1));
-
-			res[k].copyFrom(*mat);
-			delete tmp;
-		}
-		end_t = GetMillsec();
-		printf("iter: kernel calculate time: %lf\n", end_t - start_t);
-
-		end = GetMillsec();
-		std::cout << "\t\tTime for getting MulMatix: "
-			<< (end - start) << "ms"
-			<< std::endl;
-
-		mat->add(res[0], res[1]);
-		mat->add(*mat, res[2]);
-		mat->add(*mat, res[3]);
-
-		Arr256x64i32 arr(*mat);
-		arr.reduceFNV();
-		rhash_sha3_256_init(ctx);
-		rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-		rhash_sha3_final(ctx, results);
-		delete mat;
-		delete[] res;
-		free(ctx);
+        iter(g_msg, 32, results,i);
 
         int j = 0;
         for (; j < 32; j++) {
