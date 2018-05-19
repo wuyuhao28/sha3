@@ -169,7 +169,7 @@ __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 	{
 		int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
 		//int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
-		tmpMatrix[curRow * BLOCK_SIZE + curCol] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
+		tmpMatrix[curCol * BLOCK_SIZE + curRow] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
 		//sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
 	}
 }
@@ -249,9 +249,9 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			{
 				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
 			}
-			if ((end_t - start_t) > 5.0)
+			if ((end_t - start_t) > 1)
 			{
-				printf("\t kernel time: %lfms  i: %d, j: %d\n", (end_t - start_t), i, j);
+				printf("\t large kernel time: %lfms  i: %d, j: %d\n", (end_t - start_t), i, j);
 			}
 		}
 	}
