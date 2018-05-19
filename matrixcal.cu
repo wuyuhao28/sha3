@@ -304,7 +304,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 //	delete tmp;
 //}
 
-void iter(
+inline void iter(
 	const uint8_t *msg,
 	uint32_t len,
 	uint8_t result[32],

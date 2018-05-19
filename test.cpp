@@ -113,71 +113,70 @@ int main(void)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
 	
-
 	/////////////////////////////////////////////////////////////////////////////////////
-	//start_t = GetMillsec();
+	start_t = GetMillsec();
 
- //   for (int i = 0;i<1 ; i++) {	
+    for (int i = 0;i<1 ; i++) {	
 
- //       iter(g_msg, 32, results,i);
+        iter(g_msg, 32, results,i);
 
- //       int j = 0;
- //       for (; j < 32; j++) {
- //           // printf("0x%02x, ",results[i][j]);
- //           if (results[j] != g_results[j]) {
-	//			printf("Results does not match, i: %d , j : %d \n", i, j);
- //               break;
- //           }
- //       }
- //   }
-	//delete matList_int8;
+        int j = 0;
+        for (; j < 32; j++) {
+            // printf("0x%02x, ",results[i][j]);
+            if (results[j] != g_results[j]) {
+				printf("Results does not match, i: %d , j : %d \n", i, j);
+                break;
+            }
+        }
+    }
+	delete matList_int8;
 
-	//end_t = GetMillsec();
-	//std::cout << "all time : "
-	//	<< end_t - start_t << "ms"
-	//	<< std::endl;
+	end_t = GetMillsec();
+	std::cout << "all time : "
+		<< end_t - start_t << "ms"
+		<< std::endl;
 
 	/////////////////////////////////////////////////////////////////////////////////
-	start_t = GetMillsec();
-	//while (1)
-	//{
-		pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * g_deviceNum);
-		int threadNum = g_deviceNum;
-		pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
-		for (int i = 0; i < threadNum; i++)
-		{
-			calculateThreadArg[i].threadID = i;
-			calculateThreadArg[i].msg = g_msg;
-			calculateThreadArg[i].len = 32;
-			memset(calculateThreadArg[i].result, 0, sizeof(calculateThreadArg[i].result));
+	//start_t = GetMillsec();
+	////while (1)
+	////{
+	//	pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * g_deviceNum);
+	//	int threadNum = g_deviceNum;
+	//	pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
+	//	for (int i = 0; i < threadNum; i++)
+	//	{
+	//		calculateThreadArg[i].threadID = i;
+	//		calculateThreadArg[i].msg = g_msg;
+	//		calculateThreadArg[i].len = 32;
+	//		memset(calculateThreadArg[i].result, 0, sizeof(calculateThreadArg[i].result));
 
-			if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&calculateThreadArg[i]) != 0)
-			{
-				printf("ERROR: calculateThread create failed.\n");
-				return -1;
-			}
-		}
+	//		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&calculateThreadArg[i]) != 0)
+	//		{
+	//			printf("ERROR: calculateThread create failed.\n");
+	//			return -1;
+	//		}
+	//	}
 
-		for (int i = 0; i < threadNum; i++)
-		{
-			if (pthread_join(calculateThread[i], NULL) != 0)
-			{
-				printf("ERROR: calculateThread join failed.\n");
-				return -1;
-			}
-		}
+	//	for (int i = 0; i < threadNum; i++)
+	//	{
+	//		if (pthread_join(calculateThread[i], NULL) != 0)
+	//		{
+	//			printf("ERROR: calculateThread join failed.\n");
+	//			return -1;
+	//		}
+	//	}
 
-		if (calculateThreadArg)
-			delete[] calculateThreadArg;
+	//	if (calculateThreadArg)
+	//		delete[] calculateThreadArg;
 
-		end_t = GetMillsec();
-		std::cout << "all time : "
-			<< end_t - start_t << "ms"
-			<< std::endl;
+	//	end_t = GetMillsec();
+	//	std::cout << "all time : "
+	//		<< end_t - start_t << "ms"
+	//		<< std::endl;
 
-		//usleep(10000);
-	//}
-	delete matList_int8;
+	//	//usleep(10000);
+	////}
+	//delete matList_int8;
 
 	for (int i = 0; i < g_deviceNum; i++)
 	{
