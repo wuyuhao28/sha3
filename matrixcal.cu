@@ -302,14 +302,18 @@ void iter(
 	uint32_t len,
 	uint8_t result[32],
 	uint32_t threadID) {
+
+	double start_t, end_t;
+	start_t = GetMillsec();
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
-	
+	end_t = GetMillsec();
+	printf("iter: prepare time: %lf\n", end_t - start_t);
+
 	double start, end;
 	start = GetMillsec();
 
-	double start_t, end_t;
 	cudaError_t cudaStatus;
 	start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {
