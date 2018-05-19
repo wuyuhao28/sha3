@@ -47,7 +47,7 @@ MY_CFLAGS =
 #-D PRINTDEBUG
 
 # The linker options.
-MY_LIBS   =  -lpthread -lrt -lm -L$(CUDA_LIBRARY) -lcudart  -ldl -lcublas
+MY_LIBS   =  -lpthread -lrt -lm -L$(CUDA_LIBRARY) -lcudart  -ldl 
 #-crs 
 
 # The pre-processor options used by the cpp (man cpp for more).
@@ -80,13 +80,13 @@ SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp .s .S .cu
 HDREXTS = .h .H .hh .hpp .HPP .h++ .hxx .hp
 
 # The C program compiler.
-CC     = g++
+CC     = g++ -g
 
 # The C++ program compiler.
 CXX    = g++
 
 #The CUDA program compiler.
-NVCC = $(CUDA)/bin/nvcc
+NVCC = $(CUDA)/bin/nvcc -g -G
 
 # Un-comment the following line to compile C programs as C++ ones.
 #CC     = $(CXX)
@@ -134,7 +134,7 @@ DEPEND      = $(CC)  $(DEP_OPT)  $(MY_CFLAGS) $(CFLAGS) $(CPPFLAGS)
 DEPEND.d    = $(subst -g ,,$(DEPEND))
 COMPILE.c   = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS)  -DPROGRAM_REVISION=$(PROGRAM_REVISION) -c
 COMPILE.cxx = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION) -c 
-COMPILE.cu  = $(NVCC) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION) --ptxas-options="-v" -c 
+COMPILE.cu  = $(NVCC) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION) --ptxas-options="-v" $(GENCODE_SM30) -c 
 LINK.c      = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS) $(LDFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION)
 LINK.cxx    = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION)
 
