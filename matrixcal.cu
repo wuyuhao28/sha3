@@ -243,10 +243,10 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			source = tmpSource;*/
 			
 			end_t = GetMillsec();
-			/*if (i ==0 && j == 0)
+			if (i ==0 && j == 0)
 			{
-				printf("\t first kernel time2: %lfms\n", (end_t - start_t));
-			}*/
+				printf("\t first kernel time2: %lfms\n", (end_t - start));
+			}
 		}
 	}
 	
