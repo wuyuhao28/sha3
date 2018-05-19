@@ -8,7 +8,7 @@
 //#include "atomic.h"
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID, uint8_t *tmpMat);
-cudaError_t matrixMul_CuBlas(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, AlgriMatList* matList_int8, uint8_t *sequence);
+
 //__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
 
 #define LOOP_COUNT		2
@@ -286,191 +286,6 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	return cudaStatus;
 }
 
-
-
-//
-__global__ void ReadKernel(int8_t *tmp, int8_t *matList, float *f_tmp, float *f_matList)
-{
-	int curRow = threadIdx.x;
-	int curCol = blockIdx.x;
-
-	f_tmp[curRow * BLOCK_SIZE + curCol] = (float)tmp[curRow * BLOCK_SIZE + curCol];
-	for (int i = 0; i < SEQUENCE_COUNT; i++)
-	{
-		f_matList[i * BLOCK_SIZE * BLOCK_SIZE + curRow * BLOCK_SIZE + curCol] = (float)f_matList[i * BLOCK_SIZE * BLOCK_SIZE + curRow * BLOCK_SIZE + curCol];
-	}
-}
-
-__global__ void matrixMultiplyShared_float(float *A, float *B_all, float *C, uint8_t index)
-{
-	//@@ Insert code to implement matrix multiplication here
-	//@@ You have to use shared memory for this MP
-
-	__shared__ float sharedM[TILE_WIDTH][TILE_WIDTH];
-	__shared__ float sharedN[TILE_WIDTH][TILE_WIDTH];
-	int bx = blockIdx.x;
-	int by = blockIdx.y;
-	int tx = threadIdx.x;
-	int ty = threadIdx.y;
-	int row = by*TILE_WIDTH + ty;
-	int col = bx*TILE_WIDTH + tx;
-	float v = 0;
-
-	float *B = B_all + index * BLOCK_SIZE * BLOCK_SIZE;
-
-	for (int i = 0; i < (int)(ceil((float)BLOCK_SIZE / TILE_WIDTH)); i++)
-	{
-		if (i*TILE_WIDTH + tx < BLOCK_SIZE && row < BLOCK_SIZE)
-			sharedM[ty][tx] = A[row*BLOCK_SIZE + i*TILE_WIDTH + tx];
-		else
-			sharedM[ty][tx] = 0.0;
-
-		if (i*TILE_WIDTH + ty < BLOCK_SIZE && col < BLOCK_SIZE)
-			sharedN[ty][tx] = B[(i*TILE_WIDTH + ty)*BLOCK_SIZE + col];
-		else
-			sharedN[ty][tx] = 0.0;
-		__syncthreads();
-
-		for (int j = 0; j < TILE_WIDTH; j++)
-			v += sharedM[ty][j] * sharedN[j][tx];
-		__syncthreads();
-	}
-
-	int v_tmp = (int)v;
-	if (row < BLOCK_SIZE && col < BLOCK_SIZE)
-	{
-		//extra calculate
-		v_tmp = ((v_tmp & 0xFF) + ((v_tmp >> 8) & 0xFF)) & 0xFF;
-
-		C[row*BLOCK_SIZE + col] = (float)v_tmp;
-	}
-}
-
-cudaError_t matrixMul_CuBlas(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, AlgriMatList* matList_int8, uint8_t *sequence)
-{
-	double start, end;
-	cudaError_t cudaStatus;
-	start = GetMillsec();
-	cudaStatus = cudaSetDevice(0);
-
-	float alpha = 1;
-	float beta = 0;
-
-	int matrixSize_int8 = sizeof(int8_t) * 256 * 256;
-	int8_t *tmp, *matList;
-	cudaStatus = cudaMalloc((void **)&tmp, matrixSize_int8);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	cudaStatus = cudaMalloc((void **)&matList, matrixSize_int8 * SEQUENCE_COUNT);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-
-	cudaStatus = cudaMemcpy(tmp, tmpMatrix->d, matrixSize_int8, cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	int offset = 0;
-	for (int i = 0; i < SEQUENCE_COUNT; i++)
-	{
-		cudaStatus = cudaMemcpy(matList + offset, matList_int8->at(sequence[i]).d, matrixSize_int8, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-		offset += matrixSize_int8;
-	}
-
-	int matrixSize = sizeof(float) * 256 * 256;
-	float *f_source, *f_tmp, *f_matList, *tmpSource;
-	cudaStatus = cudaMalloc((void **)&f_source, matrixSize);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	cudaStatus = cudaMemset(f_source, 0, matrixSize);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	cudaStatus = cudaMalloc((void **)&f_tmp, matrixSize);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	cudaStatus = cudaMalloc((void **)&f_matList, matrixSize * SEQUENCE_COUNT);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-
-	ReadKernel << <BLOCK_SIZE, THREAD_SIZE >> >(tmp, matList, f_tmp, f_matList);
-	cudaDeviceSynchronize();
-	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-	{
-		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-		return cudaStatus;
-	}
-
-	end = GetMillsec();
-	printf("\t kernel copy time: %lfs\n", (end - start));
-
-	//////////////////////////////////single kernel loop////////////////////////////////
-	start = GetMillsec();
-	cublasStatus_t cublasError;
-	for (int i = 0; i < LOOP_COUNT; i++)
-	{
-		for (int j = 0; j < SEQUENCE_COUNT; j++)
-		{
-			/*cublasHandle_t handle;
-			cublasCreate(&handle);
-			cublasError = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 256, 256, 256,
-				&alpha, f_tmp, 256, f_matList + j * matrixSize, 256, &beta, f_source, 256);
-			if (cublasError != CUBLAS_STATUS_SUCCESS)
-			{
-				printf("cublasSgemm_v2 error!, j: %d cublasError: %d\n", j, cublasError);
-			}*/
-			//cublasGemmEx();
-			dim3 DimGrid(ceil(BLOCK_SIZE / TILE_WIDTH), ceil(BLOCK_SIZE / TILE_WIDTH), 1);
-			dim3 DimBlock(TILE_WIDTH, TILE_WIDTH, 1);
-			matrixMultiplyShared_float << < DimGrid, DimBlock >> >(f_tmp, f_matList, f_source, j);
-			cudaDeviceSynchronize();
-			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-			{
-				printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-				return cudaStatus;
-			}
-
-			tmpSource = f_tmp;
-			f_tmp = f_source;
-			f_source = tmpSource;
-
-			/*if (i == 0 && j == 10)
-			{
-				end = clock();
-				printf("\t 10 single kernel cal time: %lf s\n", (double)(end - start) / CLOCKS_PER_SEC);
-			}*/
-		}
-	}
-	////////////////////////////////////////////////////////////////////////
-	float *hostSouce = (float *)malloc(matrixSize);
-	memset(hostSouce, 0, matrixSize);
-	cudaStatus = cudaMemcpy(hostSouce, f_tmp, matrixSize, cudaMemcpyDeviceToHost);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-
-	for (int i = 0; i < 256; i++)
-	{
-		for (int j = 0; j < 256; j++)
-		{
-			sourceMatrix.d[i][j] = (int8_t)hostSouce[j * 256 + i];
-		}
-	}
-
-	end = GetMillsec();
-	printf("\t kernel time: %lfs\n", (end - start));
-
-	cudaFree(tmp);
-	cudaFree(matList);
-	cudaFree(f_source);
-	cudaFree(f_tmp);
-	cudaFree(f_matList);
-
-	free(hostSouce);
-
-	return cudaStatus;
-}
-
-
-
 //typedef struct st_matrixMulThreadArg{
 //	
 //
@@ -507,13 +322,18 @@ void iter(
 	double start, end;
 	start = GetMillsec();
 
+	double start_t, end_t;
+	start_t = GetMillsec();
 	cudaError_t cudaStatus;
 	int8_t* matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
 	int8_t* tmpMulMat = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
 	cudaStatus = cudaMemcpy(matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	end_t = GetMillsec();
+	printf("iter: kernel prepare time: %lf\n", end_t - start_t);
 
+	start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {
 		uint8_t sequence[128];
 		rhash_sha3_256_init(ctx);
@@ -524,7 +344,6 @@ void iter(
 
 		//GPU process
 		cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID, tmpMulMat);
-		//cudaStatus = matrixMul_CuBlas(*mat, tmp, matList_int8, sequence);
 		if (cudaStatus != cudaSuccess){
 			printf("ERROR: cuda error during GPU process.\n");
 		}
@@ -532,6 +351,8 @@ void iter(
 		res[k].copyFrom(*mat);
 		delete tmp;
 	}
+	end_t = GetMillsec();
+	printf("iter: kernel calculate time: %lf\n", end_t - start_t);
 
 	/////////////////////////////////
 	/*pthread_t matrixMulThread[4];
@@ -554,8 +375,11 @@ void iter(
 		}
 	}*/
 
+	start_t = GetMillsec();
 	memory_pool->CFree(threadID, matList);
 	memory_pool->CFree(threadID, tmpMulMat);
+	end_t = GetMillsec();
+	printf("iter: kernel tail time: %lf\n", end_t - start_t);
 	end = GetMillsec();
 	std::cout << "\t\tTime for getting MulMatix: "
 		<< (end - start) << "ms"
