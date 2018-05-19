@@ -161,20 +161,19 @@ __global__ void Matrix_Mul(int8_t *md, int8_t *nd, int8_t *pd, uint8_t index)
 
 __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 {
-	int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
-	int curRow = tid / BLOCK_SIZE;
-	int curCol = tid % BLOCK_SIZE;
+	//int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
+	//int curRow = tid / BLOCK_SIZE;
+	//int curCol = tid % BLOCK_SIZE;
 
-	if (tid < BLOCK_SIZE * THREAD_SIZE)
-	{
-		int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
-		//int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
-		tmpMatrix[curCol * BLOCK_SIZE + curRow] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
-		//sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
-	}
+	//if (tid < BLOCK_SIZE * THREAD_SIZE)
+	//{
+	//	int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
+	//	//int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
+	//	tmpMatrix[curCol * BLOCK_SIZE + curRow] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
+	//	//sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
+	//}
 }
 
-__shared__ int source[sizeof(int) * 256 * 256];
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
 	uint8_t *sequence, uint32_t threadID, int8_t *tmpMulMat)
@@ -189,11 +188,10 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 	int matrixSize = sizeof(int8_t) * 256 * 256;
 	//int8_t *source;
-	//int *source;
-	
+	int *source;
 	int8_t *tmp, *tmpSource;
 	//source = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
-	//source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
+	source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
 	tmp = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
 	cudaStatus = cudaMemcpy(tmp, tmpMatrix->d, matrixSize, cudaMemcpyHostToDevice);
@@ -278,7 +276,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	//
 
 	memory_pool->CFree(threadID, tmp);
-	//memory_pool->CFree(threadID, source);
+	memory_pool->CFree(threadID, source);
 
 	end = GetMillsec();
 	printf("\t kernel tail time: %lfms\n", (end - start));
