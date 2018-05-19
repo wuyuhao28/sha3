@@ -7,7 +7,7 @@
 //#include <stdio.h>
 //#include "atomic.h"
 
-cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID, uint8_t *tmpMat);
+cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID);
 
 //__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
 
@@ -176,7 +176,7 @@ __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
-	uint8_t *sequence, uint32_t threadID, int8_t *tmpMulMat)
+	uint8_t *sequence, uint32_t threadID)
 {
 	double start, end, start_t, end_t;
 	cudaError_t cudaStatus;
@@ -326,12 +326,13 @@ void iter(
 	start_t = GetMillsec();
 	cudaError_t cudaStatus;
 	int8_t* matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
-	int8_t* tmpMulMat = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
+	end_t = GetMillsec();
+	printf("iter: kernel prepare time1: %lf\n", end_t - start_t);
 	cudaStatus = cudaMemcpy(matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	end_t = GetMillsec();
-	printf("iter: kernel prepare time: %lf\n", end_t - start_t);
+	printf("iter: kernel prepare time2: %lf\n", end_t - start_t);
 
 	start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {
@@ -343,7 +344,7 @@ void iter(
 		tmp->toIdentityMatrix();
 
 		//GPU process
-		cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID, tmpMulMat);
+		cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID);
 		if (cudaStatus != cudaSuccess){
 			printf("ERROR: cuda error during GPU process.\n");
 		}
