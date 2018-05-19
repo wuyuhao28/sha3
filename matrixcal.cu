@@ -199,7 +199,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
 	end = GetMillsec();
-	printf("\t kernel copy time: %lfms\n", (end - start));
+	printf("\n\t kernel copy time: %lfms\n", (end - start));
 
 	//////////////////////////////////single kernel loop////////////////////////////////
 	start = GetMillsec();
@@ -268,13 +268,18 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
 		return cudaStatus;
 	}*/
-
+	start = GetMillsec();
 	cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
+	//
+
 	memory_pool->CFree(threadID, tmp);
 	memory_pool->CFree(threadID, source);
+
+	end = GetMillsec();
+	printf("\t kernel tail time: %lfms\n", (end - start));
 
 	return cudaStatus;
 }
