@@ -161,17 +161,17 @@ __global__ void Matrix_Mul(int8_t *md, int8_t *nd, int8_t *pd, uint8_t index)
 
 __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 {
-	//int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
-	//int curRow = tid / BLOCK_SIZE;
-	//int curCol = tid % BLOCK_SIZE;
+	int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
+	int curRow = tid / BLOCK_SIZE;
+	int curCol = tid % BLOCK_SIZE;
 
-	//if (tid < BLOCK_SIZE * THREAD_SIZE)
-	//{
-	//	int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
-	//	//int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
-	//	tmpMatrix[curCol * BLOCK_SIZE + curRow] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
-	//	//sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
-	//}
+	if (tid < BLOCK_SIZE * THREAD_SIZE)
+	{
+		int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
+		//int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
+		tmpMatrix[curCol * BLOCK_SIZE + curRow] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
+		//sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
+	}
 }
 
 
