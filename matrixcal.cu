@@ -261,23 +261,13 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	}
 	
 	////////////////////////////////////////////////////////////////////////
-	end = GetMillsec();
-	printf("\t kernel time: %lfms\n", (end - start));
-	/*start = clock();
-	mulKernel << <BLOCK_SIZE, THREAD_SIZE >> >(source, tmp, matList, atomicGPU);
-	cudaDeviceSynchronize();
+	//end = GetMillsec();
+	//printf("\t kernel time: %lfms\n", (end - start));
 
-	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-	{
-		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-		return cudaStatus;
-	}*/
-	start = GetMillsec();
-	cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
+	//start = GetMillsec();
+	//cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-
-	//
 
 	memory_pool->CFree(threadID, tmp);
 	memory_pool->CFree(threadID, source);
