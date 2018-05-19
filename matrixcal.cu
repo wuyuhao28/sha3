@@ -11,12 +11,6 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 //__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
 
-#define LOOP_COUNT		2
-#define SEQUENCE_COUNT	32
-
-#define BLOCK_SIZE		256
-#define THREAD_SIZE		256
-
 // tmp * seq[index] -> source
 //////////////////////////////////single kernel loop////////////////////////////////
 //__global__ void mulKernel(int8_t* sourceMatrix, int8_t* tmpMatrix, int8_t* seqMatrix, uint8_t index)
@@ -304,7 +298,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 //	delete tmp;
 //}
 
-inline void iter(
+void iter(
 	const uint8_t *msg,
 	uint32_t len,
 	uint8_t result[32],
