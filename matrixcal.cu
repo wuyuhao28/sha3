@@ -378,7 +378,6 @@ void iter(
 
 	start_t = GetMillsec();
 	memory_pool->CFree(threadID, matList);
-	memory_pool->CFree(threadID, tmpMulMat);
 	end_t = GetMillsec();
 	printf("iter: kernel tail time: %lf\n", end_t - start_t);
 	end = GetMillsec();
