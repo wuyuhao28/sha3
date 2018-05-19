@@ -101,12 +101,16 @@ int main(void)
 	matList_int8 = new AlgriMatList;
 	matList_int8->init(extSeed);
 
-	cudaSetDevice(0);
-	cublasCreate(&g_handle);
+	for (int i = 0; i < g_deviceNum; i++)
+	{
+		cudaSetDevice(i);
+		cublasCreate(&g_handle);
+	}
+	
 
 	start_t = GetMillsec();
 
-    for (int i = 0;i<1 ; i++) {	
+    for (int i = 0;i<6 ; i++) {	
 
         iter(g_msg, 32, results,i);
 

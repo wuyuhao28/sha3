@@ -162,8 +162,8 @@ __global__ void Matrix_Mul(int8_t *md, int8_t *nd, int8_t *pd, uint8_t index)
 __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 {
 	int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
-	int curRow = threadIdx.x;
-	int curCol = blockIdx.x;
+	int curRow = tid / BLOCK_SIZE;
+	int curCol = tid % BLOCK_SIZE;
 
 	if (tid < BLOCK_SIZE * THREAD_SIZE)
 	{
@@ -235,7 +235,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				printf("\t first kernel time1: %lfms\n", (end_t - start_t));
 			}
 
-			matrixExtraCal << <BLOCK_SIZE, THREAD_SIZE >> >(source, tmp);
+			matrixExtraCal << <64, 1024 >> >(source, tmp);
 			cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
