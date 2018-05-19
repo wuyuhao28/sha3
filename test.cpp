@@ -93,7 +93,7 @@ int main(void)
 	memoryManageInit();
 
 	double start_t, end_t;
-	start_t = GetMillsec();
+	//start_t = GetMillsec();
 
     uint8_t results[32] = { 0 };
 	Words32 extSeed = extSeedCreate(g_seed);
@@ -108,29 +108,31 @@ int main(void)
 	}
 	
 
-	start_t = GetMillsec();
+	/////////////////////////////////////////////////////////////////////////////////////
+	//start_t = GetMillsec();
 
-    for (int i = 0;i<6 ; i++) {	
+ //   for (int i = 0;i<6 ; i++) {	
 
-        iter(g_msg, 32, results,i);
+ //       iter(g_msg, 32, results,i);
 
-        int j = 0;
-        for (; j < 32; j++) {
-            // printf("0x%02x, ",results[i][j]);
-            if (results[j] != g_results[j]) {
-				printf("Results does not match, i: %d , j : %d \n", i, j);
-                break;
-            }
-        }
-    }
-	delete matList_int8;
+ //       int j = 0;
+ //       for (; j < 32; j++) {
+ //           // printf("0x%02x, ",results[i][j]);
+ //           if (results[j] != g_results[j]) {
+	//			printf("Results does not match, i: %d , j : %d \n", i, j);
+ //               break;
+ //           }
+ //       }
+ //   }
+	//delete matList_int8;
 
-	end_t = GetMillsec();
-	std::cout << "all time : "
-		<< end_t - start_t << "ms"
-		<< std::endl;
+	//end_t = GetMillsec();
+	//std::cout << "all time : "
+	//	<< end_t - start_t << "ms"
+	//	<< std::endl;
 
 	/////////////////////////////////////////////////////////////////////////////////
+	start_t = GetMillsec();
 	//while (1)
 	//{
 		pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * g_deviceNum);
