@@ -174,8 +174,9 @@ __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 	}
 }
 
+__shared__ int source[sizeof(int) * 256 * 256];
 
-__global__ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
+cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, int8_t* matList, 
 	uint8_t *sequence, uint32_t threadID, int8_t *tmpMulMat)
 {
 	double start, end, start_t, end_t;
@@ -189,7 +190,7 @@ __global__ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8*
 	int matrixSize = sizeof(int8_t) * 256 * 256;
 	//int8_t *source;
 	//int *source;
-	__shared__ int source[sizeof(int) * 256 * 256];
+	
 	int8_t *tmp, *tmpSource;
 	//source = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 	//source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
