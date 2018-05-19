@@ -317,17 +317,7 @@ void iter(
 	start = GetMillsec();
 
 	double start_t, end_t;
-	start_t = GetMillsec();
 	cudaError_t cudaStatus;
-	int8_t* matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
-	end_t = GetMillsec();
-	printf("iter: kernel prepare time1: %lf\n", end_t - start_t);
-	cudaStatus = cudaMemcpy(matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	end_t = GetMillsec();
-	printf("iter: kernel prepare time2: %lf\n", end_t - start_t);
-
 	start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {
 		uint8_t sequence[128];
@@ -336,8 +326,8 @@ void iter(
 		rhash_sha3_final(ctx, sequence);
 		Mat256x256i8 *tmp = new Mat256x256i8;
 		tmp->toIdentityMatrix();
+
 		//GPU process
-		
 		/*cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID);
 		if (cudaStatus != cudaSuccess){
 			printf("ERROR: cuda error during GPU process.\n");
@@ -429,6 +419,8 @@ void iter(
 		<< (end - start) << "ms"
 		<< std::endl;
 
+
+	start_t = GetMillsec();
 	mat->add(res[0], res[1]);
 	mat->add(*mat, res[2]);
 	mat->add(*mat, res[3]);
@@ -441,6 +433,8 @@ void iter(
 	delete mat;
 	delete[] res;
 	free(ctx);
+	end_t = GetMillsec();
+	printf("iter: iter tail time: %lf\n", end_t - start_t);
 }
 
 
