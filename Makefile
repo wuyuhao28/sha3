@@ -47,7 +47,7 @@ MY_CFLAGS =
 #-D PRINTDEBUG
 
 # The linker options.
-MY_LIBS   =  -lpthread -lrt -lm -L$(CUDA_LIBRARY) -lcudart  -ldl 
+MY_LIBS   =  -lpthread -lrt -lm -L$(CUDA_LIBRARY) -lcudart  -ldl -lcublas
 #-crs 
 
 # The pre-processor options used by the cpp (man cpp for more).
