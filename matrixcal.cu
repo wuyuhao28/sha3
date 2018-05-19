@@ -168,9 +168,9 @@ __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 	if (tid < BLOCK_SIZE * THREAD_SIZE)
 	{
 		int tmp = sourceMatrix[curRow * BLOCK_SIZE + curCol];
-		int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
+		//int8_t tmp2 = tmpMatrix[curRow * BLOCK_SIZE + curCol];
 		tmpMatrix[curRow * BLOCK_SIZE + curCol] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
-		sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
+		//sourceMatrix[curRow * BLOCK_SIZE + curCol] = tmp2;
 	}
 }
 
@@ -223,8 +223,8 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			//cudaDeviceSynchronize();
 
 			cublasStatus_t cublasSatus = cublasGemmEx(handle, CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
-				(void *)&alpha, (void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
-				(void *)tmp, CUDA_R_8I, 256,
+				(void *)&alpha, (void *)tmp, CUDA_R_8I, 256,
+				(void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)&beta, (void *)source, CUDA_R_32I, 256,
 				CUDA_R_32I, CUBLAS_GEMM_DFALT);
 			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
