@@ -235,7 +235,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				printf("\t first kernel time1: %lfms\n", (end_t - start_t));
 			}
 
-			matrixExtraCal << <64, 1024 >> >(source, tmp);
+			matrixExtraCal << <256, 256 >> >(source, tmp);
 			cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
