@@ -12,6 +12,7 @@
 
 AlgriMatList* matList_int8;
 int g_deviceNum;
+cublasHandle_t g_handle;
 
 static uint8_t g_msg[32] = {
         0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
@@ -100,9 +101,7 @@ int main(void)
 	matList_int8 = new AlgriMatList;
 	matList_int8->init(extSeed);
 
-	cudaDeviceProp t;
-	cudaGetDeviceProperties(&t, 0);
-	printf("t.maxThreadsPerBlock: %d\n", t.maxThreadsPerBlock);
+	cublasCreate(&g_handle);
 
 	start_t = GetMillsec();
 
@@ -167,5 +166,6 @@ int main(void)
 	}
 	delete matList_int8;*/
 
+	cublasDestroy(g_handle);
     return 0;
 }

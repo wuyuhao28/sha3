@@ -9,11 +9,13 @@
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 
-#include <cublas_v2.h> //cuda×Ô´ø¿âº¯Êý
-//#include <cublas.h>
+#include <cublas_v2.h> //cuda�Դ��⺯��
+//#include <cublas.h> 
 #include <sys/time.h>
 #include <time.h>
 #include <stdio.h>
+
+extern cublasHandle_t g_handle;
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence);
 //__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
