@@ -119,7 +119,8 @@ int main(void)
     for (int i = 0;i<1 ; i++) {	
 
         //iter(g_msg, 32, results,i);
-
+		
+		int len = 32;
 		Mat256x256i8 *res = new Mat256x256i8[4];
 		Mat256x256i8 *mat = new Mat256x256i8;
 		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
@@ -133,7 +134,7 @@ int main(void)
 		for (int k = 0; k < 4; k++) {
 			uint8_t sequence[128];
 			rhash_sha3_256_init(ctx);
-			rhash_sha3_update(ctx, msg + (len*k / 4), len / 4);
+			rhash_sha3_update(ctx, g_msg + (len*k / 4), len / 4);
 			rhash_sha3_final(ctx, sequence);
 			Mat256x256i8 *tmp = new Mat256x256i8;
 			tmp->toIdentityMatrix();
