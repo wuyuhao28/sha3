@@ -304,121 +304,121 @@ void iter(
 	uint32_t threadID,
 	Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
-	double start_t, end_t;
-	start_t = GetMillsec();
-	/*Mat256x256i8 *res = new Mat256x256i8[4];
-	Mat256x256i8 *mat = new Mat256x256i8;
-	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));*/
-	end_t = GetMillsec();
-	printf("iter: prepare time: %lf\n", end_t - start_t);
+	//double start_t, end_t;
+	//start_t = GetMillsec();
+	///*Mat256x256i8 *res = new Mat256x256i8[4];
+	//Mat256x256i8 *mat = new Mat256x256i8;
+	//sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));*/
+	//end_t = GetMillsec();
+	//printf("iter: prepare time: %lf\n", end_t - start_t);
 
-	double start, end;
-	start = GetMillsec();
+	//double start, end;
+	//start = GetMillsec();
 
-	cudaError_t cudaStatus;
-	start_t = GetMillsec();
-	for (int k = 0; k < 4; k++) {
-		uint8_t sequence[128];
-		rhash_sha3_256_init(ctx);
-		rhash_sha3_update(ctx, msg + (len*k / 4), len / 4);
-		rhash_sha3_final(ctx, sequence);
-		Mat256x256i8 *tmp = new Mat256x256i8;
-		tmp->toIdentityMatrix();
+	//cudaError_t cudaStatus;
+	//start_t = GetMillsec();
+	//for (int k = 0; k < 4; k++) {
+	//	uint8_t sequence[128];
+	//	rhash_sha3_256_init(ctx);
+	//	rhash_sha3_update(ctx, msg + (len*k / 4), len / 4);
+	//	rhash_sha3_final(ctx, sequence);
+	//	Mat256x256i8 *tmp = new Mat256x256i8;
+	//	tmp->toIdentityMatrix();
 
-		//GPU process
-		/*cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID);
-		if (cudaStatus != cudaSuccess){
-			printf("ERROR: cuda error during GPU process.\n");
-		}*/
+	//	//GPU process
+	//	/*cudaStatus = matrixMul(*mat, tmp, matList, sequence, threadID);
+	//	if (cudaStatus != cudaSuccess){
+	//		printf("ERROR: cuda error during GPU process.\n");
+	//	}*/
 
-		double t1, t2;
-		t1 = GetMillsec();
-		cudaSetDevice(threadID);
-		cudaError_t cudaStatus;
+	//	double t1, t2;
+	//	t1 = GetMillsec();
+	//	cudaSetDevice(threadID);
+	//	cudaError_t cudaStatus;
 
-		int alpha = 1;
-		int beta = 0;
+	//	int alpha = 1;
+	//	int beta = 0;
 
-		int matrixSize = sizeof(int8_t) * 256 * 256;
-		int *source;
-		int8_t *tmpMatrix, *tmpSource;
-		source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
-		tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
+	//	int matrixSize = sizeof(int8_t) * 256 * 256;
+	//	int *source;
+	//	int8_t *tmpMatrix, *tmpSource;
+	//	source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
+	//	tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
-		cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-		for (int i = 0; i < LOOP_COUNT; i++)
-		{
-			for (int j = 0; j < SEQUENCE_COUNT; j++)
-			{
-				cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
-					(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
-					(void *)(g_device_matList[threadID] + sequence[j] * matrixSize), CUDA_R_8I, 256,
-					(void *)&beta, (void *)source, CUDA_R_32I, 256,
-					CUDA_R_32I, CUBLAS_GEMM_DFALT);
+	//	cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
+	//	if (cudaStatus != cudaSuccess)
+	//		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	//	for (int i = 0; i < LOOP_COUNT; i++)
+	//	{
+	//		for (int j = 0; j < SEQUENCE_COUNT; j++)
+	//		{
+	//			cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
+	//				(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
+	//				(void *)(g_device_matList[threadID] + sequence[j] * matrixSize), CUDA_R_8I, 256,
+	//				(void *)&beta, (void *)source, CUDA_R_32I, 256,
+	//				CUDA_R_32I, CUBLAS_GEMM_DFALT);
 
-				if (cublasSatus != CUBLAS_STATUS_SUCCESS)
-				{
-					printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
-				}
+	//			if (cublasSatus != CUBLAS_STATUS_SUCCESS)
+	//			{
+	//				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
+	//			}
 
-				matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
-				cudaDeviceSynchronize();
+	//			matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
+	//			cudaDeviceSynchronize();
 
-				if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-				{
-					printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-				}
-			}
-		}
+	//			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+	//			{
+	//				printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
+	//			}
+	//		}
+	//	}
 
-		cudaStatus = cudaMemcpy(mat->d, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	//	cudaStatus = cudaMemcpy(mat->d, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
+	//	if (cudaStatus != cudaSuccess)
+	//		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
-		memory_pool->CFree(threadID, tmpMatrix);
-		memory_pool->CFree(threadID, source);
+	//	memory_pool->CFree(threadID, tmpMatrix);
+	//	memory_pool->CFree(threadID, source);
 
-		t2 = GetMillsec();
-		printf("\t kernel total time: %lfms\n", (t2 - t1));
+	//	t2 = GetMillsec();
+	//	printf("\t kernel total time: %lfms\n", (t2 - t1));
 
-		res[k].copyFrom(*mat);
-		delete tmp;
-	}
-	end_t = GetMillsec();
-	printf("iter: kernel calculate time: %lf\n", end_t - start_t);
+	//	res[k].copyFrom(*mat);
+	//	delete tmp;
+	//}
+	//end_t = GetMillsec();
+	//printf("iter: kernel calculate time: %lf\n", end_t - start_t);
 
-	/////////////////////////////////
-	/*pthread_t matrixMulThread[4];
-	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
-	for (int i = 0; i < 4; i++)
-	{
-		if (pthread_create(&matrixMulThread[i], NULL, matrixMul_Thread, (void *)&matrixMulThreadArg[i]) != 0)
-		{
-			printf("ERROR: calculateThread create failed.\n");
-			return;
-		}
-	}
+	///////////////////////////////////
+	///*pthread_t matrixMulThread[4];
+	//pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	if (pthread_create(&matrixMulThread[i], NULL, matrixMul_Thread, (void *)&matrixMulThreadArg[i]) != 0)
+	//	{
+	//		printf("ERROR: calculateThread create failed.\n");
+	//		return;
+	//	}
+	//}
 
-	for (int i = 0; i < 4; i++)
-	{
-		if (pthread_join(matrixMulThread[i], NULL) != 0)
-		{
-			printf("ERROR: calculateThread join failed.\n");
-			return;
-		}
-	}*/
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	if (pthread_join(matrixMulThread[i], NULL) != 0)
+	//	{
+	//		printf("ERROR: calculateThread join failed.\n");
+	//		return;
+	//	}
+	//}*/
 
-	mat->add(res[0], res[1]);
-	mat->add(*mat, res[2]);
-	mat->add(*mat, res[3]);
+	//mat->add(res[0], res[1]);
+	//mat->add(*mat, res[2]);
+	//mat->add(*mat, res[3]);
 
-	/*Arr256x64i32 arr(*mat);
-	arr.reduceFNV();
-	rhash_sha3_256_init(ctx);
-	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-	rhash_sha3_final(ctx, result);*/
+	//Arr256x64i32 arr(*mat);
+	//arr.reduceFNV();
+	//rhash_sha3_256_init(ctx);
+	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	//rhash_sha3_final(ctx, result);
 	//delete mat;
 	//delete[] res;
 	//free(ctx);

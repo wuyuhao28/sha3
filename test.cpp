@@ -142,6 +142,9 @@ int main(void)
 		<< end_t - start_t << "ms"
 		<< std::endl;
 
+	delete mat;
+	delete[] res;
+	free(ctx);
 
 	//printf("\n\n Multi process in.\n");
 	///////////////////////////////////////////////////////////////////////////////////
