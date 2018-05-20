@@ -414,14 +414,14 @@ void iter(
 	mat->add(*mat, res[2]);
 	mat->add(*mat, res[3]);
 
-	Arr256x64i32 arr(*mat);
+	/*Arr256x64i32 arr(*mat);
 	arr.reduceFNV();
 	rhash_sha3_256_init(ctx);
 	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-	rhash_sha3_final(ctx, result);
-	delete mat;
-	delete[] res;
-	free(ctx);
+	rhash_sha3_final(ctx, result);*/
+	//delete mat;
+	//delete[] res;
+	//free(ctx);
 
 	end = GetMillsec();
 	std::cout << "\t\tTime for getting MulMatix: "
