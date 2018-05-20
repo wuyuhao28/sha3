@@ -304,8 +304,8 @@ void iter(
 	uint32_t threadID,
 	Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
-	//double start_t, end_t;
-	//start_t = GetMillsec();
+	double start_t, end_t;
+	start_t = GetMillsec();
 	///*Mat256x256i8 *res = new Mat256x256i8[4];
 	//Mat256x256i8 *mat = new Mat256x256i8;
 	//sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));*/
