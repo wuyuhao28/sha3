@@ -362,13 +362,13 @@ void iter(
 					printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 				}
 
-				/*matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
+				matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
 				cudaDeviceSynchronize();
 
 				if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 				{
 					printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-				}*/
+				}
 			}
 		}
 
