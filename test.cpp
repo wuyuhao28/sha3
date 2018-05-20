@@ -70,7 +70,7 @@ void* calculate_Thread(void *arg)
 {
 	pstCalculateThreadArg calculateThreadArg = (pstCalculateThreadArg)arg;
 
-	iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID);
+	//iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID);
 
 	for (int j = 0; j < 32; j++) {
 		if (calculateThreadArg->result[j] != g_results[j]) {
@@ -113,13 +113,16 @@ int main(void)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
 	
+	Mat256x256i8 *res = new Mat256x256i8[4];
+	Mat256x256i8 *mat = new Mat256x256i8;
+	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx)); 
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	start_t = GetMillsec();
 
     for (int i = 0;i<1 ; i++) {	
 
-        iter(g_msg, 32, results,i);
+		iter(g_msg, 32, results, i, res, mat, ctx);
 		end_t = GetMillsec();
 		printf("iter out time: %lf\n", end_t - start_t);
 
