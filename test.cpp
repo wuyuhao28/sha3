@@ -42,7 +42,7 @@ typedef struct st_calculateThreadArg{
 	uint32_t len;
 	uint32_t threadID;
 	uint8_t result[32];
-	uint8_t seed[32]
+	uint8_t seed[32];
 	//Mat256x256i8 *res;
 	//Mat256x256i8 *mat;
 	//sha3_ctx *ctx;
