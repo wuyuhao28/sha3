@@ -307,8 +307,6 @@ void iter(
 	Mat256x256i8 *mat = new Mat256x256i8;
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 	memset(ctx, 0, sizeof(*ctx));
-
-	cudaError_t cudaStatus;
 	for (int k = 0; k < 4; k++) {
 		uint8_t sequence[128];
 		rhash_sha3_256_init(ctx);
