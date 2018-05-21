@@ -307,16 +307,19 @@ void iter(
 	}
 	else
 	{
+		delete matList_int8;
 		Words32 extSeed = extSeedCreate(seed);
 		matList_int8 = new AlgriMatList;
 		matList_int8->init(extSeed);
 	}
+	end_t = GetMillsec();
+	printf("iter prepare time0: %lf\n", end_t - start_t);
 	cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
 	end_t = GetMillsec();
-	printf("iter prepare time: %lf\n", end_t - start_t);
+	printf("iter prepare time1: %lf\n", end_t - start_t);
 
 	start_t = end_t;
 
