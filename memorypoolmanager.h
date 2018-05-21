@@ -1,5 +1,5 @@
 /**************************************************
-description:ÄÚ´æ¹ÜÀíÆ÷
+description:Ã„ÃšÂ´Ã¦Â¹ÃœÃ€Ã­Ã†Ã·
 author:zhoubin
 time:2017-6-28
 filename:MemoryManager.h
@@ -14,6 +14,7 @@ filename:MemoryManager.h
 #include <pthread.h>
 #include <list>
 #include <map>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
