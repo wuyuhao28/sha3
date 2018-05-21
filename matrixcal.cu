@@ -294,29 +294,41 @@ void iter(
 	uint8_t result[32],
 	uint32_t threadID){
 	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
-
+	cudaError_t cudaStatus;
 	memory_pool->inital(DEVICENUM, DEVICEMEMORY);
-	int8_t* device_matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
+	//int8_t* device_matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
+	int8_t* device_matList;
 	
 	double start_t, end_t;
 	start_t = GetMillsec();
+	//add mutex?
 	if (memcmp(seed, g_seed, 32) == 0)
 	{
 		printf("seed alread exist.\n");
 	}
 	else
 	{
-		delete matList_int8;
 		Words32 extSeed = extSeedCreate(seed);
-		matList_int8 = new AlgriMatList;
+		//matList_int8 = new AlgriMatList;
+
+		memset(matList_int8->matVec, 0, sizeof(Mat256x256i8) * 256);
+		for (int i = 0; i<256; i++) {
+			matList_int8->matVec[i].toIdentityMatrix();
+		}
 		matList_int8->init(extSeed);
+		memcpy(g_seed, seed, 32);
+		cudaStatus = cudaMemcpy(g_device_matList[threadID], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+		if (cudaStatus != cudaSuccess)
+			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
+	///////
 	end_t = GetMillsec();
-	cudaSetDevice(threadID);
 	printf("iter prepare time0: %lf\n", end_t - start_t);
-	cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+	cudaSetDevice(threadID);
+	/*cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);*/
+	device_matList = g_device_matList[threadID];
 
 	end_t = GetMillsec();
 	printf("iter prepare time1: %lf\n", end_t - start_t);
