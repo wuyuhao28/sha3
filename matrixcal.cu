@@ -298,6 +298,9 @@ void iter(
 	memory_pool->inital(DEVICENUM, DEVICEMEMORY);
 	int8_t* device_matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
 	
+	double start_t, end_t;
+	start_t = GetMillsec();
+
 	if (memcmp(seed, g_seed, 32) == 0)
 	{
 		printf("seed alread exist.\n");
@@ -312,10 +315,17 @@ void iter(
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
+	end_t = GetMillsec();
+	printf("iter prepare time: %lf\n", end_t - start_t);
+
+	start_t = end_t;
+
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
-	memset(ctx, 0, sizeof(*ctx));
+	//memset(ctx, 0, sizeof(*ctx));
+	end_t = GetMillsec();
+	printf("iter prepare time2: %lf\n", end_t - start_t);
 
 	for (int k = 0; k < 4; k++) {
 		uint8_t sequence[128];
@@ -339,7 +349,7 @@ void iter(
 
 		int matrixSize = sizeof(int8_t) * 256 * 256;
 		int *source;
-		int8_t *tmpMatrix, *tmpSource;
+		int8_t *tmpMatrix;
 		source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
 		tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
