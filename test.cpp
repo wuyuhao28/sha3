@@ -73,8 +73,8 @@ void* calculate_Thread(void *arg)
 {
 	pstCalculateThreadArg calculateThreadArg = (pstCalculateThreadArg)arg;
 
-	iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID,
-		calculateThreadArg->res, calculateThreadArg->mat, calculateThreadArg->ctx);
+	//iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID,
+	//	calculateThreadArg->res, calculateThreadArg->mat, calculateThreadArg->ctx);
 
 
 	//for (int j = 0; j < 32; j++) {
