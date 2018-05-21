@@ -64,6 +64,7 @@ int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryT
 		}
 		printf("inital already done \n");
 	}
+
 	pthread_mutex_unlock(&memoryMutex);
     return 0;
 }

@@ -107,7 +107,8 @@ int main(void)
 		cudaSetDevice(i);
 		cublasCreate(&g_handle[i]);
 
-		g_device_matList[i] = (int8_t *)memory_pool->CMalloc(i, sizeof(int8_t) * 256 * 256 * 256);
+		//g_device_matList[i] = (int8_t *)memory_pool->CMalloc(i, sizeof(int8_t) * 256 * 256 * 256);
+		cudaMalloc((void **)&g_device_matList[i], sizeof(int8_t) * 256 * 256 * 256);
 		cudaError_t cudaStatus = cudaMemcpy(g_device_matList[i], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 		if (cudaStatus != cudaSuccess)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
@@ -226,7 +227,8 @@ int main(void)
 	{
 		cudaSetDevice(i);
 		cublasDestroy(g_handle[i]);
-		memory_pool->CFree(i, g_device_matList[i]);
+		//memory_pool->CFree(i, g_device_matList[i]);
+		cudaFree(g_device_matList[i]);
 	}
 	
     return 0;
