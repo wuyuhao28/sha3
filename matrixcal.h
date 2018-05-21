@@ -9,7 +9,7 @@
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 
-#include <cublas_v2.h> //cuda×Ô´ø¿âº¯Êý
+#include <cublas_v2.h> //cudaè‡ªå¸¦åº“å‡½æ•°
 //#include <cublas.h> 
 #include <sys/time.h>
 #include <time.h>
@@ -28,8 +28,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 //__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
 
-//void iter(const uint8_t *msg, uint32_t len, uint8_t result[32], uint32_t threadID, Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx);
-void iter();
+void iter(const uint8_t *msg, uint32_t len, uint8_t result[32], uint32_t threadID, Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx);
 
 double GetMillsec();
 
