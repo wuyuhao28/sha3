@@ -295,7 +295,9 @@ void iter(
 	uint32_t threadID){
 	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
-	uint8_t results[32] = { 0 };
+	memory_pool->inital(DEVICENUM, DEVICEMEMORY);
+
+	
 	Words32 extSeed = extSeedCreate(seed);
 	matList_int8 = new AlgriMatList;
 	matList_int8->init(extSeed);
@@ -307,6 +309,7 @@ void iter(
 	Mat256x256i8 *mat = new Mat256x256i8;
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 	memset(ctx, 0, sizeof(*ctx));
+
 	for (int k = 0; k < 4; k++) {
 		uint8_t sequence[128];
 		rhash_sha3_256_init(ctx);
@@ -438,3 +441,11 @@ double GetMillsec()
 }
 
 
+
+//void memoryManageInit()
+//{
+//	//cudaGetDeviceCount(&g_deviceNum);
+//	//printf("device num: %d\n", DEVICENUM);
+//
+//	
+//}

@@ -28,23 +28,30 @@ CMemoryManagerPool::~CMemoryManagerPool()
 //初始化内存
 int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryType)
 {
-	_mapmemorypool.clear();
-	pthread_rwlock_init(&_rwlock_memorypool, NULL);   //初始化读写锁
-	_memory_size = poolSize;
-	for (int i = 0; i < num; i++)
+	if (initFlag == false)
 	{
-		printf("[%s %d|Info] i:%d,poolsize:%ld\n",__FILE__,__LINE__, i, poolSize);
-		PMEMORYPOOL _memorypool = ::_CreateMemoryPool(i,poolSize, memoryType);
-		if (NULL == _memorypool)
+		initFlag = true;
+		_mapmemorypool.clear();
+		pthread_rwlock_init(&_rwlock_memorypool, NULL);   //初始化读写锁
+		_memory_size = poolSize;
+		for (int i = 0; i < num; i++)
 		{
-			printf("CMemoryManagerPool::inital create memory pool failed. size [%d].\n", poolSize);
-			continue;
+			printf("[%s %d|Info] i:%d,poolsize:%ld\n", __FILE__, __LINE__, i, poolSize);
+			PMEMORYPOOL _memorypool = ::_CreateMemoryPool(i, poolSize, memoryType);
+			if (NULL == _memorypool)
+			{
+				printf("CMemoryManagerPool::inital create memory pool failed. size [%d].\n", poolSize);
+				continue;
+			}
+			_mapmemorypool[i] = _memorypool;
 		}
-		_mapmemorypool[i] = _memorypool;
-	}
-	
-    printf("inital is over \n");
 
+		printf("inital is over \n");
+	}
+	else
+	{
+		printf("inital has alread done \n");
+	}
     return 0;
 }
 

@@ -8,7 +8,7 @@
 
 
 #include "matrixcal.h"
-#define DEVICEMEMORY		(1024*1024*1024)			 //1G
+
 
 AlgriMatList* matList_int8;
 int g_deviceNum;
@@ -85,18 +85,11 @@ void* calculate_Thread(void *arg)
 	//}
 }
 
-void memoryManageInit()
-{
-	cudaGetDeviceCount(&g_deviceNum);
-	printf("device num: %d\n", g_deviceNum);
-
-	memory_pool->inital(g_deviceNum, DEVICEMEMORY);
-}
-
 
 int main(void)
 {
-	memoryManageInit();
+	//memoryManageInit();
+	//cudaGetDeviceCount(&g_deviceNum);
 
 	double start_t, end_t;
 	//start_t = GetMillsec();
@@ -106,7 +99,7 @@ int main(void)
 	matList_int8 = new AlgriMatList;
 	//matList_int8->init(extSeed);
 
-	for (int i = 0; i < g_deviceNum; i++)
+	for (int i = 0; i < DEVICENUM; i++)
 	{
 		cudaSetDevice(i);
 		cublasCreate(&g_handle[i]);
