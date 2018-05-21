@@ -1,5 +1,5 @@
 /**************************************************
-description:Ã„ÃšÂ´Ã¦Â¹ÃœÃ€Ã­Ã†Ã·
+description:ÄÚ´æ¹ÜÀíÆ÷
 author:zhoubin
 time:2017-6-28
 filename:MemoryManager.h
@@ -48,6 +48,7 @@ class CMemoryManagerPool {
         static CMemoryManagerPool *instance();
 		bool initFlag;
 		bool initOverFlag;
+		pthread_mutex_t memoryMutex;
 
     public:
         CMemoryManagerPool();

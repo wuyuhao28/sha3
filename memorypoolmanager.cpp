@@ -19,6 +19,7 @@ CMemoryManagerPool::CMemoryManagerPool()
     _memory_size = 0;
 	initFlag = false;
 	initOverFlag = false;
+	pthread_mutex_init(&memoryMutex, NULL);
 }
 
 CMemoryManagerPool::~CMemoryManagerPool()
@@ -30,6 +31,7 @@ CMemoryManagerPool::~CMemoryManagerPool()
 //³õÊ¼»¯ÄÚ´æ
 int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryType)
 {
+	pthread_mutex_lock(&memoryMutex);
 	if (initFlag == false)
 	{
 		initFlag = true;
@@ -59,6 +61,7 @@ int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryT
 		}
 		printf("inital already done \n");
 	}
+	pthread_mutex_unlock(&memoryMutex);
     return 0;
 }
 
