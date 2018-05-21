@@ -128,13 +128,13 @@ int main(void)
 		printf("iter out time: %lf\n", end_t - start_t);
 
         int j = 0;
-        for (; j < 32; j++) {
+        //for (; j < 32; j++) {
             // printf("0x%02x, ",results[i][j]);
-            if (results[j] != g_results[j]) {
-				printf("Results does not match, i: %d , j : %d \n", i, j);
-                break;
-            }
-        }
+           // if (results[j] != g_results[j]) {
+				//printf("Results does not match, i: %d , j : %d \n", i, j);
+                //break;
+            //}
+        //}
     }
 	//delete matList_int8;
 
