@@ -300,7 +300,6 @@ void iter(
 	
 	double start_t, end_t;
 	start_t = GetMillsec();
-
 	if (memcmp(seed, g_seed, 32) == 0)
 	{
 		printf("seed alread exist.\n");
@@ -313,6 +312,7 @@ void iter(
 		matList_int8->init(extSeed);
 	}
 	end_t = GetMillsec();
+	cudaSetDevice(threadID);
 	printf("iter prepare time0: %lf\n", end_t - start_t);
 	cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
@@ -344,8 +344,7 @@ void iter(
 			printf("ERROR: cuda error during GPU process.\n");
 		}*/
 
-		cudaSetDevice(threadID);
-		cudaError_t cudaStatus;
+		//cudaSetDevice(threadID);
 
 		int alpha = 1;
 		int beta = 0;
