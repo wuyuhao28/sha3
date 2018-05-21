@@ -318,6 +318,8 @@ void iter(
 	//double start, end;
 	//start = GetMillsec();
 
+	memset(ctx, 0, sizeof(*ctx));
+
 	cudaError_t cudaStatus;
 	//start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {

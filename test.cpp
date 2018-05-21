@@ -115,25 +115,25 @@ int main(void)
 	
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
-	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx)); 
+	sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx)); 
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	start_t = GetMillsec();
 
-    for (int i = 0;i<1 ; i++) {	
+    for (int i = 0;i<6 ; i++) {	
 
 		iter(g_msg, 32, results, i, res, mat, ctx);
-		//end_t = GetMillsec();
+		end_t = GetMillsec();
 		//printf("iter out time: %lf\n", end_t - start_t);
 
-        /*int j = 0;
-        for (; j < 32; j++) {
-            // printf("0x%02x, ",results[i][j]);
-            if (results[j] != g_results[j]) {
-				printf("Results does not match, i: %d , j : %d \n", i, j);
-                break;
-            }
-        }*/
+    //    int j = 0;
+    //    for (; j < 32; j++) {
+    //        // printf("0x%02x, ",results[i][j]);
+    //        if (results[j] != g_results[j]) {
+				//printf("Results does not match, i: %d , j : %d \n", i, j);
+    //            break;
+    //        }
+    //    }
     }
 	//delete matList_int8;
 
