@@ -422,9 +422,9 @@ void iter(
 	rhash_sha3_256_init(ctx);
 	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
 	rhash_sha3_final(ctx, result);
-	delete mat;
-	delete[] res;
-	free(ctx);
+	//delete mat;
+	//delete[] res;
+	//free(ctx);
 
 	/*end = GetMillsec();
 	std::cout << "\t\tTime for getting MulMatix: "
