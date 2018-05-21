@@ -164,7 +164,7 @@ int main(void)
 	{
 		res[i] = new Mat256x256i8[4];
 		mat[i] = new Mat256x256i8;
-		ctx[i] = (sha3_ctx*)malloc(sizeof(*ctx));
+		ctx[i] = (sha3_ctx*)malloc(sha3_ctx);
 	}
 
 	printf("test2\n");
