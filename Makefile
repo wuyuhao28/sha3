@@ -80,13 +80,13 @@ SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp .s .S .cu
 HDREXTS = .h .H .hh .hpp .HPP .h++ .hxx .hp
 
 # The C program compiler.
-CC     = g++ 
+CC     = g++ -g
 
 # The C++ program compiler.
-CXX    = g++
+CXX    = g++ -g
 
 #The CUDA program compiler.
-NVCC = $(CUDA)/bin/nvcc 
+NVCC = $(CUDA)/bin/nvcc -g
 
 # Un-comment the following line to compile C programs as C++ ones.
 #CC     = $(CXX)
