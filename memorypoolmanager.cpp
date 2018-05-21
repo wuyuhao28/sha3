@@ -17,6 +17,8 @@ CMemoryManagerPool::CMemoryManagerPool()
 {
 	_mapmemorypool.clear();
     _memory_size = 0;
+	initFlag = false;
+	initOverFlag = false;
 }
 
 CMemoryManagerPool::~CMemoryManagerPool()
@@ -47,10 +49,15 @@ int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryT
 		}
 
 		printf("inital is over \n");
+		initOverFlag = true;
 	}
 	else
 	{
-		printf("inital is over \n");
+		while(initOverFlag == false)
+		{
+			usleep(10);
+		}
+		printf("inital already done \n");
 	}
     return 0;
 }

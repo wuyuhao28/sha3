@@ -46,6 +46,7 @@ class CMemoryManagerPool {
     public:
         static CMemoryManagerPool *instance();
 		bool initFlag;
+		bool initOverFlag;
 
     public:
         CMemoryManagerPool();
