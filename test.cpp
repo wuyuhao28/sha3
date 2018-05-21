@@ -123,17 +123,17 @@ int main(void)
     for (int i = 0;i<6 ; i++) {	
 
 		iter(g_msg, 32, results, i, res, mat, ctx);
-		end_t = GetMillsec();
-		printf("iter out time: %lf\n", end_t - start_t);
+		//end_t = GetMillsec();
+		//printf("iter out time: %lf\n", end_t - start_t);
 
-    //    int j = 0;
-    //    for (; j < 32; j++) {
-    //        // printf("0x%02x, ",results[i][j]);
-    //        if (results[j] != g_results[j]) {
+        int j = 0;
+        for (; j < 32; j++) {
+            // printf("0x%02x, ",results[i][j]);
+            if (results[j] != g_results[j]) {
 				//printf("Results does not match, i: %d , j : %d \n", i, j);
-    //            break;
-    //        }
-    //    }
+                break;
+            }
+        }
     }
 	//delete matList_int8;
 
