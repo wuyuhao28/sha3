@@ -98,9 +98,9 @@ int main(void)
 	//start_t = GetMillsec();
 
     uint8_t results[32] = { 0 };
-	//Words32 extSeed = extSeedCreate(g_seed);
+	Words32 extSeed = extSeedCreate(g_seed);
 	matList_int8 = new AlgriMatList;
-	//matList_int8->init(extSeed);
+	matList_int8->init(extSeed);
 
 	for (int i = 0; i < DEVICENUM; i++)
 	{

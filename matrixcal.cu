@@ -311,7 +311,6 @@ void iter(
 	cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	
 
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;

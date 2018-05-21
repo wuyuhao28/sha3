@@ -31,6 +31,9 @@ CMemoryManagerPool::~CMemoryManagerPool()
 //³õÊ¼»¯ÄÚ´æ
 int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryType)
 {
+	if (initOverFlag == true)
+		return 0;
+
 	pthread_mutex_lock(&memoryMutex);
 	if (initFlag == false)
 	{
