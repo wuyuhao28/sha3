@@ -50,7 +50,7 @@ int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryT
 	}
 	else
 	{
-		printf("inital has alread done \n");
+		printf("inital is over \n");
 	}
     return 0;
 }

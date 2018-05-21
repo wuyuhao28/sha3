@@ -296,14 +296,22 @@ void iter(
 	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
 	memory_pool->inital(DEVICENUM, DEVICEMEMORY);
-
+	int8_t* device_matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
 	
-	Words32 extSeed = extSeedCreate(seed);
-	matList_int8 = new AlgriMatList;
-	matList_int8->init(extSeed);
-	cudaError_t cudaStatus = cudaMemcpy(g_device_matList[threadID], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	if (memcpy(seed, g_seed, 32) == 0)
+	{
+		printf("seed alread exist.\n");
+	}
+	else
+	{
+		Words32 extSeed = extSeedCreate(seed);
+		matList_int8 = new AlgriMatList;
+		matList_int8->init(extSeed);
+		cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+		if (cudaStatus != cudaSuccess)
+			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	}
+	
 
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
@@ -345,7 +353,7 @@ void iter(
 			{
 				cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
 					(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
-					(void *)(g_device_matList[threadID] + sequence[j] * matrixSize), CUDA_R_8I, 256,
+					(void *)(device_matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 					(void *)&beta, (void *)source, CUDA_R_32I, 256,
 					CUDA_R_32I, CUBLAS_GEMM_DFALT);
 
@@ -374,7 +382,8 @@ void iter(
 		res[k].copyFrom(*mat);
 		delete tmp;
 	}
-
+	
+	memory_pool->CFree(threadID, device_matList);
 	/////////////////////////////////
 	/*pthread_t matrixMulThread[4];
 	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
