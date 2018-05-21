@@ -1,15 +1,5 @@
 #include "matrixcal.h"
 
-//#include "cuda_runtime.h"
-//#include "device_launch_parameters.h"
-//#include "device_functions.h"
-//#include "algri.h"
-//#include <stdio.h>
-//#include "atomic.h"
-
-
-//__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
-
 // tmp * seq[index] -> source
 //////////////////////////////////single kernel loop////////////////////////////////
 //__global__ void mulKernel(int8_t* sourceMatrix, int8_t* tmpMatrix, int8_t* seqMatrix, uint8_t index)
@@ -299,29 +289,26 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 void iter(
 	const uint8_t *msg,
+	uint8_t *seed,
 	uint32_t len,
 	uint8_t result[32],
-	uint32_t threadID,
-	Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
+	uint32_t threadID){
+	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
-	//double start, end;
-	//start = GetMillsec();
+	uint8_t results[32] = { 0 };
+	Words32 extSeed = extSeedCreate(seed);
+	matList_int8 = new AlgriMatList;
+	matList_int8->init(extSeed);
+	cudaError_t cudaStatus = cudaMemcpy(g_device_matList[threadID], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+	if (cudaStatus != cudaSuccess)
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
-	//double start_t, end_t;
-	//start_t = GetMillsec();
-	/*Mat256x256i8 *res = new Mat256x256i8[4];
+	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
-	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));*/
-	//end_t = GetMillsec();
-	//printf("iter: prepare time: %lf\n", end_t - start_t);
-
-	//double start, end;
-	//start = GetMillsec();
-
+	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 	memset(ctx, 0, sizeof(*ctx));
 
 	cudaError_t cudaStatus;
-	//start_t = GetMillsec();
 	for (int k = 0; k < 4; k++) {
 		uint8_t sequence[128];
 		rhash_sha3_256_init(ctx);
@@ -336,8 +323,6 @@ void iter(
 			printf("ERROR: cuda error during GPU process.\n");
 		}*/
 
-		//double t1, t2;
-		//t1 = GetMillsec();
 		cudaSetDevice(threadID);
 		cudaError_t cudaStatus;
 
@@ -385,14 +370,9 @@ void iter(
 		memory_pool->CFree(threadID, tmpMatrix);
 		memory_pool->CFree(threadID, source);
 
-		//t2 = GetMillsec();
-		//printf("\t kernel total time: %lfms\n", (t2 - t1));
-
 		res[k].copyFrom(*mat);
 		delete tmp;
 	}
-	//end_t = GetMillsec();
-	//printf("iter: kernel calculate time: %lf\n", end_t - start_t);
 
 	/////////////////////////////////
 	/*pthread_t matrixMulThread[4];
@@ -423,16 +403,30 @@ void iter(
 	rhash_sha3_256_init(ctx);
 	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
 	rhash_sha3_final(ctx, result);
-	//delete mat;
-	//delete[] res;
-	//free(ctx);
-
-	/*end = GetMillsec();
-	std::cout << "\t\tTime for getting MulMatix: "
-		<< (end - start) << "ms"
-		<< std::endl;*/
+	delete mat;
+	delete[] res;
+	free(ctx);
 }
 
+static void init_seed(Words32 &seed, uint32_t _seed[32])
+{
+	for (int i = 0; i < 16; i++)
+		seed.lo.w[i] = _seed[i];
+	for (int i = 0; i < 16; i++)
+		seed.hi.w[i] = _seed[16 + i];
+}
+
+
+//add by wyh, create extseed from seed
+Words32 extSeedCreate(uint8_t *seed)
+{
+	uint32_t exted[32];
+	extend(exted, seed);
+	Words32 extSeed;
+	init_seed(extSeed, exted);
+
+	return extSeed;
+}
 
 
 double GetMillsec()
@@ -444,3 +438,5 @@ double GetMillsec()
 	t1 = starttime.tv_sec * 1000 + starttime.tv_usec*0.001;
 	return t1;
 }
+
+

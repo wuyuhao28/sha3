@@ -8,6 +8,7 @@
 
 #include "memorypool.h"
 #include "memorypoolmanager.h"
+#include "seed.h"
 
 #include <cublas_v2.h> //cuda×Ô´ø¿âº¯Êý
 //#include <cublas.h> 
@@ -26,9 +27,10 @@ extern int8_t* g_device_matList[6];
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID);
 
-//__global__ void mulKernel(Mat256x256i8& sourceMatrix, Mat256x256i8* tmpMatrix, Mat256x256i8* seqMatrix);
+//void iter(const uint8_t *msg, uint32_t len, uint8_t result[32], uint32_t deviceID, Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx);
+void iter(const uint8_t *msg,uint8_t *g_seed, uint32_t len, uint8_t result[32], uint32_t deviceID);
 
-void iter(const uint8_t *msg, uint32_t len, uint8_t result[32], uint32_t threadID, Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx);
+Words32 extSeedCreate(uint8_t *seed);
 
 double GetMillsec();
 

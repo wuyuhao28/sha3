@@ -47,27 +47,27 @@ typedef struct st_calculateThreadArg{
 	sha3_ctx *ctx;
 }stCalculateThreadArg, *pstCalculateThreadArg;
 
-Words32 extSeedCreate(uint8_t *seed);
+//Words32 extSeedCreate(uint8_t *seed);
 
-static void init_seed(Words32 &seed, uint32_t _seed[32])
-{
-    for (int i = 0; i < 16; i++)
-        seed.lo.w[i] = _seed[i];
-    for (int i = 0; i < 16; i++)
-        seed.hi.w[i] = _seed[16 + i];
-}
-
-
-//add by wyh, create extseed from seed
-Words32 extSeedCreate(uint8_t *seed)
-{
-	uint32_t exted[32];
-	extend(exted, seed);
-	Words32 extSeed;
-	init_seed(extSeed, exted);
-
-	return extSeed;
-}
+//static void init_seed(Words32 &seed, uint32_t _seed[32])
+//{
+//    for (int i = 0; i < 16; i++)
+//        seed.lo.w[i] = _seed[i];
+//    for (int i = 0; i < 16; i++)
+//        seed.hi.w[i] = _seed[16 + i];
+//}
+//
+//
+////add by wyh, create extseed from seed
+//Words32 extSeedCreate(uint8_t *seed)
+//{
+//	uint32_t exted[32];
+//	extend(exted, seed);
+//	Words32 extSeed;
+//	init_seed(extSeed, exted);
+//
+//	return extSeed;
+//}
 
 void* calculate_Thread(void *arg)
 {
@@ -102,10 +102,9 @@ int main(void)
 	//start_t = GetMillsec();
 
     uint8_t results[32] = { 0 };
-	Words32 extSeed = extSeedCreate(g_seed);
-	
+	//Words32 extSeed = extSeedCreate(g_seed);
 	matList_int8 = new AlgriMatList;
-	matList_int8->init(extSeed);
+	//matList_int8->init(extSeed);
 
 	for (int i = 0; i < g_deviceNum; i++)
 	{
@@ -113,38 +112,40 @@ int main(void)
 		cublasCreate(&g_handle[i]);
 
 		g_device_matList[i] = (int8_t *)memory_pool->CMalloc(i, sizeof(int8_t) * 256 * 256 * 256);
-		cudaError_t cudaStatus = cudaMemcpy(g_device_matList[i], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+		//cudaError_t cudaStatus = cudaMemcpy(g_device_matList[i], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+		//if (cudaStatus != cudaSuccess)
+		//	printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	//Mat256x256i8 *res = new Mat256x256i8[4];
 	//Mat256x256i8 *mat = new Mat256x256i8;
 	//sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
-	//start_t = GetMillsec();
+	start_t = GetMillsec();
 
- //   for (int i = 0;i<6 ; i++) {	
+    for (int i = 0;i<6 ; i++) {	
 
-	//	iter(g_msg, 32, results, i, res, mat, ctx);
-	//	//end_t = GetMillsec();
-	//	//printf("iter out time: %lf\n", end_t - start_t);
+		//iter(g_msg, 32, results, i, res, mat, ctx);
+		iter(g_msg, g_seed, 32, results, i);
 
- //       int j = 0;
- //       for (; j < 32; j++) {
- //           // printf("0x%02x, ",results[i][j]);
- //           if (results[j] != g_results[j]) {
-	//			printf("Results does not match, i: %d , j : %d \n", i, j);
- //               break;
- //           }
- //       }
- //   }
-	////delete matList_int8;
+		//end_t = GetMillsec();
+		//printf("iter out time: %lf\n", end_t - start_t);
 
-	//end_t = GetMillsec();
-	//std::cout << "all time : "
-	//	<< end_t - start_t << "ms"
-	//	<< std::endl;
+        int j = 0;
+        for (; j < 32; j++) {
+            // printf("0x%02x, ",results[i][j]);
+            if (results[j] != g_results[j]) {
+				printf("Results does not match, i: %d , j : %d \n", i, j);
+                break;
+            }
+        }
+    }
+	//delete matList_int8;
+
+	end_t = GetMillsec();
+	std::cout << "all time : "
+		<< end_t - start_t << "ms"
+		<< std::endl;
 
 	//delete mat;
 	//delete[] res;
@@ -153,74 +154,74 @@ int main(void)
 
 	//printf("\n\n Multi process in.\n");
 	///////////////////////////////////////////////////////////////////////////////////
-	Mat256x256i8 **res = new Mat256x256i8*[g_deviceNum];
-	Mat256x256i8 **mat = new Mat256x256i8*[g_deviceNum];
-	sha3_ctx **ctx = (sha3_ctx**)malloc(sizeof(sha3_ctx *) * g_deviceNum);
+	//Mat256x256i8 **res = new Mat256x256i8*[g_deviceNum];
+	//Mat256x256i8 **mat = new Mat256x256i8*[g_deviceNum];
+	//sha3_ctx **ctx = (sha3_ctx**)malloc(sizeof(sha3_ctx *) * g_deviceNum);
 
-	for (int i = 0; i < g_deviceNum; i++)
-	{
-		res[i] = new Mat256x256i8[4];
-		mat[i] = new Mat256x256i8;
-		ctx[i] = (sha3_ctx*)malloc(sizeof(sha3_ctx));
-	}
-
-	//Mat256x256i8 *res = new Mat256x256i8[4];
-	//Mat256x256i8 *mat = new Mat256x256i8;
-	//sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
-
-	start_t = GetMillsec();
-	//while (1)
+	//for (int i = 0; i < g_deviceNum; i++)
 	//{
-		pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * g_deviceNum);
-		int threadNum = g_deviceNum;
-		pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
-		for (int i = 0; i < threadNum; i++)
-		{
-			calculateThreadArg[i].threadID = i;
-			calculateThreadArg[i].msg = g_msg;
-			calculateThreadArg[i].len = 32;
-			memset(calculateThreadArg[i].result, 0, sizeof(calculateThreadArg[i].result));
-
-			calculateThreadArg[i].res = res[i];
-			calculateThreadArg[i].mat = mat[i];
-			calculateThreadArg[i].ctx = ctx[i];
-
-			if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&calculateThreadArg[i]) != 0)
-			{
-				printf("ERROR: calculateThread create failed.\n");
-				return -1;
-			}
-		}
-
-		for (int i = 0; i < threadNum; i++)
-		{
-			if (pthread_join(calculateThread[i], NULL) != 0)
-			{
-				printf("ERROR: calculateThread join failed.\n");
-				return -1;
-			}
-		}
-
-		if (calculateThreadArg)
-			delete[] calculateThreadArg;
-
-		end_t = GetMillsec();
-		std::cout << "all time : "
-			<< end_t - start_t << "ms"
-			<< std::endl;
-
-		//usleep(10000);
+	//	res[i] = new Mat256x256i8[4];
+	//	mat[i] = new Mat256x256i8;
+	//	ctx[i] = (sha3_ctx*)malloc(sizeof(sha3_ctx));
 	//}
 
-	for (int i = 0; i < g_deviceNum; i++)
-	{
-		delete mat[i];
-		delete[] res[i];
-		free(ctx[i]);
-	}
-	delete[] mat;
-	delete[] res;
-	free(ctx);
+	////Mat256x256i8 *res = new Mat256x256i8[4];
+	////Mat256x256i8 *mat = new Mat256x256i8;
+	////sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
+
+	//start_t = GetMillsec();
+	////while (1)
+	////{
+	//	pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * g_deviceNum);
+	//	int threadNum = g_deviceNum;
+	//	pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
+	//	for (int i = 0; i < threadNum; i++)
+	//	{
+	//		calculateThreadArg[i].threadID = i;
+	//		calculateThreadArg[i].msg = g_msg;
+	//		calculateThreadArg[i].len = 32;
+	//		memset(calculateThreadArg[i].result, 0, sizeof(calculateThreadArg[i].result));
+
+	//		calculateThreadArg[i].res = res[i];
+	//		calculateThreadArg[i].mat = mat[i];
+	//		calculateThreadArg[i].ctx = ctx[i];
+
+	//		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&calculateThreadArg[i]) != 0)
+	//		{
+	//			printf("ERROR: calculateThread create failed.\n");
+	//			return -1;
+	//		}
+	//	}
+
+	//	for (int i = 0; i < threadNum; i++)
+	//	{
+	//		if (pthread_join(calculateThread[i], NULL) != 0)
+	//		{
+	//			printf("ERROR: calculateThread join failed.\n");
+	//			return -1;
+	//		}
+	//	}
+
+	//	if (calculateThreadArg)
+	//		delete[] calculateThreadArg;
+
+	//	end_t = GetMillsec();
+	//	std::cout << "all time : "
+	//		<< end_t - start_t << "ms"
+	//		<< std::endl;
+
+	//	//usleep(10000);
+	////}
+
+	//for (int i = 0; i < g_deviceNum; i++)
+	//{
+	//	delete mat[i];
+	//	delete[] res[i];
+	//	free(ctx[i]);
+	//}
+	//delete[] mat;
+	//delete[] res;
+	//free(ctx);
 
 
 	delete matList_int8;
