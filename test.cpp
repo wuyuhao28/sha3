@@ -124,7 +124,7 @@ int main(void)
 
 		iter(g_msg, 32, results, i, res, mat, ctx);
 		end_t = GetMillsec();
-		//printf("iter out time: %lf\n", end_t - start_t);
+		printf("iter out time: %lf\n", end_t - start_t);
 
     //    int j = 0;
     //    for (; j < 32; j++) {
