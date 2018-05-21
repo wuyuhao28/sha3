@@ -297,16 +297,16 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 //	delete tmp;
 //}
 
-void iter(
-	const uint8_t *msg,
-	uint32_t len,
-	uint8_t result[32],
-	uint32_t threadID,
-	Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
+void iter(){
+	//const uint8_t *msg,
+	//uint32_t len,
+	//uint8_t result[32],
+	//uint32_t threadID,
+	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
 	double start, end;
 	start = GetMillsec();
-	
+
 	//double start_t, end_t;
 	//start_t = GetMillsec();
 	///*Mat256x256i8 *res = new Mat256x256i8[4];
