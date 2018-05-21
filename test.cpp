@@ -226,7 +226,7 @@ int main(void)
 	{
 		cudaSetDevice(i);
 		cublasDestroy(g_handle[i]);
-		memory_pool->CFree(i, g_device_matList[i]);
+		//memory_pool->CFree(i, g_device_matList[i]);
 	}
 	
     return 0;

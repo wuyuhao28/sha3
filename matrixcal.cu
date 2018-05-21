@@ -298,7 +298,7 @@ void iter(
 	memory_pool->inital(DEVICENUM, DEVICEMEMORY);
 	int8_t* device_matList = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 256);
 	
-	if (memcpy(seed, g_seed, 32) == 0)
+	if (memcmp(seed, g_seed, 32) == 0)
 	{
 		printf("seed alread exist.\n");
 	}
@@ -307,10 +307,10 @@ void iter(
 		Words32 extSeed = extSeedCreate(seed);
 		matList_int8 = new AlgriMatList;
 		matList_int8->init(extSeed);
-		cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
+	cudaError_t cudaStatus = cudaMemcpy(device_matList, matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+	if (cudaStatus != cudaSuccess)
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	
 
 	Mat256x256i8 *res = new Mat256x256i8[4];
