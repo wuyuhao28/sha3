@@ -77,7 +77,6 @@ void* calculate_Thread(void *arg)
 	iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID,
 		calculateThreadArg->res, calculateThreadArg->mat, calculateThreadArg->ctx);
 
-	printf("test4\n");
 
 	for (int j = 0; j < 32; j++) {
 		if (calculateThreadArg->result[j] != g_results[j]) {
