@@ -123,7 +123,7 @@ int main(void)
     for (int i = 0;i<1 ; i++) {	
 
 		//iter(g_msg, 32, results, i, res, mat, ctx);
-		iter();
+		//iter();
 		end_t = GetMillsec();
 		printf("iter out time: %lf\n", end_t - start_t);
 
