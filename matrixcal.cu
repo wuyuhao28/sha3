@@ -304,8 +304,8 @@ void iter(){
 	//uint32_t threadID,
 	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 
-	double start, end;
-	start = GetMillsec();
+	//double start, end;
+	//start = GetMillsec();
 
 	//double start_t, end_t;
 	//start_t = GetMillsec();
@@ -426,10 +426,10 @@ void iter(){
 	//delete[] res;
 	//free(ctx);
 
-	end = GetMillsec();
-	std::cout << "\t\tTime for getting MulMatix: "
-		<< (end - start) << "ms"
-		<< std::endl;
+	//end = GetMillsec();
+	//std::cout << "\t\tTime for getting MulMatix: "
+		//<< (end - start) << "ms"
+		//<< std::endl;
 }
 
 
