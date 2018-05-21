@@ -319,7 +319,6 @@ void iter(
 	//start = GetMillsec();
 
 	memset(ctx, 0, sizeof(*ctx));
-	printf("test4\n");
 
 	cudaError_t cudaStatus;
 	//start_t = GetMillsec();
@@ -392,7 +391,6 @@ void iter(
 		res[k].copyFrom(*mat);
 		delete tmp;
 	}
-	printf("test6\n");
 	//end_t = GetMillsec();
 	//printf("iter: kernel calculate time: %lf\n", end_t - start_t);
 
@@ -419,8 +417,7 @@ void iter(
 
 	mat->add(res[0], res[1]);
 	mat->add(*mat, res[2]);
-	mat->add(*mat, res[3]);
-	printf("test7\n");
+	mat->add(*mat, res[3]);;
 	Arr256x64i32 arr(*mat);
 	arr.reduceFNV();
 	rhash_sha3_256_init(ctx);

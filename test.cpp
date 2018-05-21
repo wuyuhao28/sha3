@@ -73,17 +73,16 @@ void* calculate_Thread(void *arg)
 {
 	pstCalculateThreadArg calculateThreadArg = (pstCalculateThreadArg)arg;
 
-	printf("test3\n");
 	iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID,
 		calculateThreadArg->res, calculateThreadArg->mat, calculateThreadArg->ctx);
 
 
-	for (int j = 0; j < 32; j++) {
-		if (calculateThreadArg->result[j] != g_results[j]) {
-			printf("Results does not match j : %d \n", j);
-			break;
-		}
-	}
+	//for (int j = 0; j < 32; j++) {
+	//	if (calculateThreadArg->result[j] != g_results[j]) {
+	//		printf("Results does not match j : %d \n", j);
+	//		break;
+	//	}
+	//}
 }
 
 void memoryManageInit()
@@ -158,16 +157,12 @@ int main(void)
 	Mat256x256i8 **mat = new Mat256x256i8*[g_deviceNum];
 	sha3_ctx **ctx = (sha3_ctx**)malloc(sizeof(sha3_ctx *) * g_deviceNum);
 
-	printf("test1\n");
-
 	for (int i = 0; i < g_deviceNum; i++)
 	{
 		res[i] = new Mat256x256i8[4];
 		mat[i] = new Mat256x256i8;
 		ctx[i] = (sha3_ctx*)malloc(sizeof(sha3_ctx));
 	}
-
-	printf("test2\n");
 
 	//Mat256x256i8 *res = new Mat256x256i8[4];
 	//Mat256x256i8 *mat = new Mat256x256i8;
