@@ -177,14 +177,14 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
-
+	cublasStatus_t cublasSatus;
 	//////////////////////////////////single kernel loop////////////////////////////////
 	for (int i = 0; i < LOOP_COUNT; i++)
 	{
 		for (int j = 0; j < SEQUENCE_COUNT; j++)
 		{
 
-			cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
+			cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
 				(void *)&alpha, (void *)tmp, CUDA_R_8I, 256,
 				(void *)(matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
 				(void *)&beta, (void *)source, CUDA_R_32I, 256,
@@ -206,15 +206,15 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 		}
 	}
 
-	cudaError_t cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
+	cudaStatus = cudaMemcpy(sourceMatrix.d, tmp, matrixSize, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
 	memory_pool->CFree(threadID, tmp);
 	memory_pool->CFree(threadID, source);
 
-	t2 = GetMillsec();
-	printf("\t kernel total time: %lfms\n", (t2 - t1));
+	//t2 = GetMillsec();
+	//printf("\t kernel total time: %lfms\n", (t2 - t1));
 	return cudaStatus;
 }
 
