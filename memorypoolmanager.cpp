@@ -53,6 +53,8 @@ int CMemoryManagerPool::inital(int num, unsigned long long poolSize, int memoryT
 			_mapmemorypool[i] = _memorypool;
 		}
 
+		cpu_memory_pool->run();
+
 		printf("inital is over \n");
 		initOverFlag = true;
 	}

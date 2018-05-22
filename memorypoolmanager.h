@@ -15,6 +15,7 @@ filename:MemoryManager.h
 #include <list>
 #include <map>
 #include <unistd.h>
+#include "CMemcontrol.h"
 
 #ifdef __cplusplus
 extern "C" {

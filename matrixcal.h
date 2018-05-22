@@ -9,6 +9,7 @@
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 #include "seed.h"
+#include "CMemcontrol.h"
 
 #include <cublas_v2.h> //cuda×Ô´ø¿âº¯Êý
 //#include <cublas.h> 
