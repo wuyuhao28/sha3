@@ -1,5 +1,5 @@
 #include "algri.h"
-#include "seed.h"
+//#include "seed.h"
 #include <stdio.h>
 #include <time.h>
 #include <iostream>
