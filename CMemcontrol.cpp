@@ -13,6 +13,7 @@ CMemControl::CMemControl()
 {
 	m_pool_index = CPU_POOL_INDEX;
 	m_mem_pool = NULL;
+	pthread_mutex_init(&memoryMutex, NULL);
 }
 
 CMemControl::~CMemControl()
@@ -43,6 +44,23 @@ void CMemControl::mem_free(void *ptr)
 
 int CMemControl::run()
 {
-	Create_mem_pool();
+	if (initOverFlag == true)
+		return 0;
+
+	pthread_mutex_lock(&memoryMutex);
+	if (initFlag == false)
+	{
+		initFlag = true;
+		Create_mem_pool();
+		initOverFlag = true;
+	}
+	else
+	{
+		while (initOverFlag == false)
+		{
+			usleep(10);
+		}
+	}
+	pthread_mutex_unlock(&memoryMutex);
 }
 

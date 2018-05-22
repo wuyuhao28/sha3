@@ -5,6 +5,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <pthread.h>
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 
@@ -12,6 +13,9 @@ class CMemControl
 {
 public:
 	static CMemControl *instance();
+	bool initFlag;
+	bool initOverFlag;
+	pthread_mutex_t memoryMutex;
 
 public:
 	CMemControl();
