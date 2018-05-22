@@ -32,7 +32,7 @@ extern uint8_t g_seed[32];
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID);
 
 //void iter(const uint8_t *msg, uint32_t len, uint8_t result[32], uint32_t deviceID, Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx);
-void iter(const uint8_t *msg,uint8_t *g_seed, uint32_t len, uint8_t result[32], uint32_t deviceID);
+void iter(uint8_t *msg,uint8_t *g_seed, uint32_t len, uint8_t result[32], uint32_t deviceID);
 
 Words32 extSeedCreate(uint8_t *seed);
 double GetMillsec();
