@@ -167,8 +167,8 @@ int main(void)
 	//sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
 
 	start_t = GetMillsec();
-	//while (1)
-	//{
+	while (1)
+	{
 	pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * DEVICENUM);
 	int threadNum = DEVICENUM;
 	pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
@@ -208,8 +208,8 @@ int main(void)
 		<< end_t - start_t << "ms"
 		<< std::endl;
 
-		//usleep(10000);
-	//}
+		usleep(10000);
+	}
 
 	//for (int i = 0; i < g_deviceNum; i++)
 	//{
