@@ -252,7 +252,10 @@ void* matrixMul_Thread(void *arg)
 	source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
 	tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
-	cudaError_t cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
+	cudaError_t cudaStatus = cudaSetDevice(threadID);
+	if (cudaStatus != cudaSuccess)
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	for (int i = 0; i < LOOP_COUNT; i++)
