@@ -423,8 +423,7 @@ void iter(
 	start_t = GetMillsec();
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
-	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
-	rhash_sha3_256_init(ctx);
+	
 	uint8_t **sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
 
 	pthread_t matrixMulThread[4];
@@ -432,6 +431,8 @@ void iter(
 	for (int i = 0; i < 4; i++)
 	{
 		//uint8_t sequence[128];
+		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
+		rhash_sha3_256_init(ctx);
 		sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 128);
 		memset(sequence[i], 0, sizeof(uint8_t) * 128);
 		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
@@ -451,6 +452,8 @@ void iter(
 			printf("ERROR: calculateThread create failed.\n");
 			return;
 		}
+
+		free(ctx);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -478,7 +481,7 @@ void iter(
 	rhash_sha3_final(ctx, result);
 	delete mat;
 	delete[] res;
-	free(ctx);
+	//free(ctx);
 	/////////////////////////////////////////////////////////////////////////////////////////////
 }
 
