@@ -1,235 +1,323 @@
-#include "algri.h"
-//#include "seed.h"
-#include <stdio.h>
-#include <time.h>
-#include <iostream>
-#include <algorithm>
-#include <pthread.h>
+#include <assert.h>
+#include <string.h>
+#include "byte_order.h"
+#include "sha3.h"
 
+/* constants */
+#define NumberOfRounds 24
 
-#include "matrixcal.h"
-
-
-AlgriMatList* matList_int8;
-int g_deviceNum;
-cublasHandle_t g_handle[6];
-int8_t* g_device_matList[6];
-
-static uint8_t g_msg[32] = {
-        0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
-        0x53, 0xfd, 0xa1, 0x55, 0x71, 0xb4, 0xe5, 0xf6,
-        0xac, 0x62, 0xff, 0x18, 0x7b, 0x35, 0x4f, 0xad,
-        0xd4, 0x84, 0x0d, 0x9f, 0xf2, 0xf1, 0xaf, 0xdf,
+/* SHA3 (Keccak) constants for 24 rounds */
+static uint64_t keccak_round_constants[NumberOfRounds] = {
+	I64(0x0000000000000001), I64(0x0000000000008082), I64(0x800000000000808A), I64(0x8000000080008000),
+	I64(0x000000000000808B), I64(0x0000000080000001), I64(0x8000000080008081), I64(0x8000000000008009),
+	I64(0x000000000000008A), I64(0x0000000000000088), I64(0x0000000080008009), I64(0x000000008000000A),
+	I64(0x000000008000808B), I64(0x800000000000008B), I64(0x8000000000008089), I64(0x8000000000008003),
+	I64(0x8000000000008002), I64(0x8000000000000080), I64(0x000000000000800A), I64(0x800000008000000A),
+	I64(0x8000000080008081), I64(0x8000000000008080), I64(0x0000000080000001), I64(0x8000000080008008)
 };
 
-uint8_t g_seed[32] = {
-        0x07, 0x37, 0x52, 0x07, 0x81, 0x34, 0x5b, 0x11,
-        0xb7, 0xbd, 0x0f, 0x84, 0x3c, 0x1b, 0xdd, 0x9a,
-        0xea, 0x81, 0xb6, 0xda, 0x94, 0xfd, 0x14, 0x1c,
-        0xc9, 0xf2, 0xdf, 0x53, 0xac, 0x67, 0x44, 0xd2,    
-};
-
-// result
-static uint8_t g_results[32] = {
-        0xe3, 0x5d, 0xa5, 0x47, 0x95, 0xd8, 0x2f, 0x85,
-        0x49, 0xc0, 0xe5, 0x80, 0xcb, 0xf2, 0xe3, 0x75,
-        0x7a, 0xb5, 0xef, 0x8f, 0xed, 0x1b, 0xdb, 0xe4,
-        0x39, 0x41, 0x6c, 0x7e, 0x6f, 0x8d, 0xf2, 0x27,  
-};
-
-typedef struct st_calculateThreadArg{
-	uint8_t *msg;
-	uint32_t len;
-	uint32_t threadID;
-	uint8_t result[32];
-	uint8_t seed[32];
-	//Mat256x256i8 *res;
-	//Mat256x256i8 *mat;
-	//sha3_ctx *ctx;
-}stCalculateThreadArg, *pstCalculateThreadArg;
-
-//Words32 extSeedCreate(uint8_t *seed);
-
-//static void init_seed(Words32 &seed, uint32_t _seed[32])
-//{
-//    for (int i = 0; i < 16; i++)
-//        seed.lo.w[i] = _seed[i];
-//    for (int i = 0; i < 16; i++)
-//        seed.hi.w[i] = _seed[16 + i];
-//}
-//
-//
-////add by wyh, create extseed from seed
-//Words32 extSeedCreate(uint8_t *seed)
-//{
-//	uint32_t exted[32];
-//	extend(exted, seed);
-//	Words32 extSeed;
-//	init_seed(extSeed, exted);
-//
-//	return extSeed;
-//}
-
-void* calculate_Thread(void *arg)
+/* Initializing a sha3 context for given number of output bits */
+static void rhash_keccak_init(sha3_ctx *ctx, unsigned bits)
 {
-	pstCalculateThreadArg calculateThreadArg = (pstCalculateThreadArg)arg;
+	/* NB: The Keccak capacity parameter = bits * 2 */
+	unsigned rate = 1600 - bits * 2;
 
-	/*iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID,
-		calculateThreadArg->res, calculateThreadArg->mat, calculateThreadArg->ctx);*/
+	memset(ctx, 0, sizeof(sha3_ctx));
+	ctx->block_size = rate / 8;
+	assert(rate <= 1600 && (rate % 64) == 0);
+}
 
-	iter(calculateThreadArg->msg, calculateThreadArg->seed, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID);
+/**
+ * Initialize context before calculating hash.
+ *
+ * @param ctx context to initialize
+ */
+void rhash_sha3_224_init(sha3_ctx *ctx)
+{
+	rhash_keccak_init(ctx, 224);
+}
 
+/**
+ * Initialize context before calculating hash.
+ *
+ * @param ctx context to initialize
+ */
+void rhash_sha3_256_init(sha3_ctx *ctx)
+{
+	rhash_keccak_init(ctx, 256);
+}
 
-	for (int j = 0; j < 32; j++) {
-		if (calculateThreadArg->result[j] != g_results[j]) {
-			printf("Results does not match j : %d \n", j);
-			break;
-		}
+/**
+ * Initialize context before calculating hash.
+ *
+ * @param ctx context to initialize
+ */
+void rhash_sha3_384_init(sha3_ctx *ctx)
+{
+	rhash_keccak_init(ctx, 384);
+}
+
+/**
+ * Initialize context before calculating hash.
+ *
+ * @param ctx context to initialize
+ */
+void rhash_sha3_512_init(sha3_ctx *ctx)
+{
+	rhash_keccak_init(ctx, 512);
+}
+
+/* Keccak theta() transformation */
+static void keccak_theta(uint64_t *A)
+{
+	unsigned int x;
+	uint64_t C[5], D[5];
+
+	for (x = 0; x < 5; x++) {
+		C[x] = A[x] ^ A[x + 5] ^ A[x + 10] ^ A[x + 15] ^ A[x + 20];
+	}
+	D[0] = ROTL64(C[1], 1) ^ C[4];
+	D[1] = ROTL64(C[2], 1) ^ C[0];
+	D[2] = ROTL64(C[3], 1) ^ C[1];
+	D[3] = ROTL64(C[4], 1) ^ C[2];
+	D[4] = ROTL64(C[0], 1) ^ C[3];
+
+	for (x = 0; x < 5; x++) {
+		A[x]      ^= D[x];
+		A[x + 5]  ^= D[x];
+		A[x + 10] ^= D[x];
+		A[x + 15] ^= D[x];
+		A[x + 20] ^= D[x];
+	}
+}
+
+/* Keccak pi() transformation */
+static void keccak_pi(uint64_t *A)
+{
+	uint64_t A1;
+	A1 = A[1];
+	A[ 1] = A[ 6];
+	A[ 6] = A[ 9];
+	A[ 9] = A[22];
+	A[22] = A[14];
+	A[14] = A[20];
+	A[20] = A[ 2];
+	A[ 2] = A[12];
+	A[12] = A[13];
+	A[13] = A[19];
+	A[19] = A[23];
+	A[23] = A[15];
+	A[15] = A[ 4];
+	A[ 4] = A[24];
+	A[24] = A[21];
+	A[21] = A[ 8];
+	A[ 8] = A[16];
+	A[16] = A[ 5];
+	A[ 5] = A[ 3];
+	A[ 3] = A[18];
+	A[18] = A[17];
+	A[17] = A[11];
+	A[11] = A[ 7];
+	A[ 7] = A[10];
+	A[10] = A1;
+	/* note: A[ 0] is left as is */
+}
+
+/* Keccak chi() transformation */
+static void keccak_chi(uint64_t *A)
+{
+	int i;
+	for (i = 0; i < 25; i += 5) {
+		uint64_t A0 = A[0 + i], A1 = A[1 + i];
+		A[0 + i] ^= ~A1 & A[2 + i];
+		A[1 + i] ^= ~A[2 + i] & A[3 + i];
+		A[2 + i] ^= ~A[3 + i] & A[4 + i];
+		A[3 + i] ^= ~A[4 + i] & A0;
+		A[4 + i] ^= ~A0 & A1;
+	}
+}
+
+static void rhash_sha3_permutation(uint64_t *state)
+{
+	int round;
+	for (round = 0; round < NumberOfRounds; round++)
+	{
+		keccak_theta(state);
+
+		/* apply Keccak rho() transformation */
+		state[ 1] = ROTL64(state[ 1],  1);
+		state[ 2] = ROTL64(state[ 2], 62);
+		state[ 3] = ROTL64(state[ 3], 28);
+		state[ 4] = ROTL64(state[ 4], 27);
+		state[ 5] = ROTL64(state[ 5], 36);
+		state[ 6] = ROTL64(state[ 6], 44);
+		state[ 7] = ROTL64(state[ 7],  6);
+		state[ 8] = ROTL64(state[ 8], 55);
+		state[ 9] = ROTL64(state[ 9], 20);
+		state[10] = ROTL64(state[10],  3);
+		state[11] = ROTL64(state[11], 10);
+		state[12] = ROTL64(state[12], 43);
+		state[13] = ROTL64(state[13], 25);
+		state[14] = ROTL64(state[14], 39);
+		state[15] = ROTL64(state[15], 41);
+		state[16] = ROTL64(state[16], 45);
+		state[17] = ROTL64(state[17], 15);
+		state[18] = ROTL64(state[18], 21);
+		state[19] = ROTL64(state[19],  8);
+		state[20] = ROTL64(state[20], 18);
+		state[21] = ROTL64(state[21],  2);
+		state[22] = ROTL64(state[22], 61);
+		state[23] = ROTL64(state[23], 56);
+		state[24] = ROTL64(state[24], 14);
+
+		keccak_pi(state);
+		keccak_chi(state);
+
+		/* apply iota(state, round) */
+		*state ^= keccak_round_constants[round];
 	}
 }
 
 
-int main(void)
+static void rhash_sha3_process_block(uint64_t hash[25], const uint64_t *block, size_t block_size)
 {
-	//memoryManageInit();
-	//cudaGetDeviceCount(&g_deviceNum);
-
-	double start_t, end_t;
-	//start_t = GetMillsec();
-
-    uint8_t results[32] = { 0 };
-	Words32 extSeed = extSeedCreate(g_seed);
-	matList_int8 = new AlgriMatList;
-	matList_int8->init(extSeed);
-
-	for (int i = 0; i < DEVICENUM; i++)
-	{
-		cudaSetDevice(i);
-		cublasCreate(&g_handle[i]);
-
-		//g_device_matList[i] = (int8_t *)memory_pool->CMalloc(i, sizeof(int8_t) * 256 * 256 * 256);
-		cudaMalloc((void **)&g_device_matList[i], sizeof(int8_t) * 256 * 256 * 256);
-		cudaError_t cudaStatus = cudaMemcpy(g_device_matList[i], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////
-	////Mat256x256i8 *res = new Mat256x256i8[4];
-	////Mat256x256i8 *mat = new Mat256x256i8;
-	////sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
-
-	//start_t = GetMillsec();
-
- //   for (int i = 0;i<6 ; i++) {	
-
-	//	//iter(g_msg, 32, results, i, res, mat, ctx);
-	//	iter(g_msg, g_seed, 32, results, i);
-
-	//	//end_t = GetMillsec();
-	//	//printf("iter out time: %lf\n", end_t - start_t);
-
- //       int j = 0;
- //       for (; j < 32; j++) {
- //           // printf("0x%02x, ",results[i][j]);
- //           if (results[j] != g_results[j]) {
-	//			printf("Results does not match, i: %d , j : %d \n", i, j);
- //               break;
- //           }
- //       }
- //   }
-
-	//end_t = GetMillsec();
-	//std::cout << "all time : "
-	//	<< end_t - start_t << "ms"
-	//	<< std::endl;
-
-	////delete mat;
-	////delete[] res;
-	////free(ctx);
-
-
-	printf("\n\n Multi process in.\n");
-	/////////////////////////////////////////////////////////////////////////////////
-	//Mat256x256i8 **res = new Mat256x256i8*[g_deviceNum];
-	//Mat256x256i8 **mat = new Mat256x256i8*[g_deviceNum];
-	////sha3_ctx **ctx = (sha3_ctx**)malloc(sizeof(sha3_ctx *) * g_deviceNum);
-
-	//for (int i = 0; i < g_deviceNum; i++)
-	//{
-	//	res[i] = new Mat256x256i8[4];
-	//	mat[i] = new Mat256x256i8;
-	//	ctx[i] = (sha3_ctx*)malloc(sizeof(sha3_ctx));
-	//}
-
-	//Mat256x256i8 *res = new Mat256x256i8[4];
-	//Mat256x256i8 *mat = new Mat256x256i8;
-	//sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
-
-	start_t = GetMillsec();
-	//while (1)
-	//{
-	pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * DEVICENUM);
-	int threadNum = DEVICENUM;
-	pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
-	for (int i = 0; i < threadNum; i++)
-	{
-		calculateThreadArg[i].threadID = i;
-		calculateThreadArg[i].msg = g_msg;
-		calculateThreadArg[i].len = 32;
-		memset(calculateThreadArg[i].result, 0, sizeof(calculateThreadArg[i].result));
-		memcpy(calculateThreadArg[i].seed, g_seed, sizeof(g_seed));
-
-		//calculateThreadArg[i].res = res[i];
-		//calculateThreadArg[i].mat = mat[i];
-		//calculateThreadArg[i].ctx = ctx[i];
-
-		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&calculateThreadArg[i]) != 0)
-		{
-			printf("ERROR: calculateThread create failed.\n");
-			return -1;
+	/* expanded loop */
+	hash[ 0] ^= le2me_64(block[ 0]);
+	hash[ 1] ^= le2me_64(block[ 1]);
+	hash[ 2] ^= le2me_64(block[ 2]);
+	hash[ 3] ^= le2me_64(block[ 3]);
+	hash[ 4] ^= le2me_64(block[ 4]);
+	hash[ 5] ^= le2me_64(block[ 5]);
+	hash[ 6] ^= le2me_64(block[ 6]);
+	hash[ 7] ^= le2me_64(block[ 7]);
+	hash[ 8] ^= le2me_64(block[ 8]);
+	/* if not sha3-512 */
+	if (block_size > 72) {
+		hash[ 9] ^= le2me_64(block[ 9]);
+		hash[10] ^= le2me_64(block[10]);
+		hash[11] ^= le2me_64(block[11]);
+		hash[12] ^= le2me_64(block[12]);
+		/* if not sha3-384 */
+		if (block_size > 104) {
+			hash[13] ^= le2me_64(block[13]);
+			hash[14] ^= le2me_64(block[14]);
+			hash[15] ^= le2me_64(block[15]);
+			hash[16] ^= le2me_64(block[16]);
+			/* if not sha3-256 */
+			if (block_size > 136) {
+				hash[17] ^= le2me_64(block[17]);
+#ifdef FULL_SHA3_FAMILY_SUPPORT
+				/* if not sha3-224 */
+				if (block_size > 144) {
+					hash[18] ^= le2me_64(block[18]);
+					hash[19] ^= le2me_64(block[19]);
+					hash[20] ^= le2me_64(block[20]);
+					hash[21] ^= le2me_64(block[21]);
+					hash[22] ^= le2me_64(block[22]);
+					hash[23] ^= le2me_64(block[23]);
+					hash[24] ^= le2me_64(block[24]);
+				}
+#endif
+			}
 		}
 	}
-
-	for (int i = 0; i < threadNum; i++)
-	{
-		if (pthread_join(calculateThread[i], NULL) != 0)
-		{
-			printf("ERROR: calculateThread join failed.\n");
-			return -1;
-		}
-	}
-
-	if (calculateThreadArg)
-		delete[] calculateThreadArg;
-
-	end_t = GetMillsec();
-	std::cout << "all time : "
-		<< end_t - start_t << "ms"
-		<< std::endl;
-
-		usleep(10000);
-	//}
-
-	//for (int i = 0; i < g_deviceNum; i++)
-	//{
-	//	delete mat[i];
-	//	delete[] res[i];
-	//	free(ctx[i]);
-	//}
-	//delete[] mat;
-	//delete[] res;
-	//free(ctx);
-
-
-	delete matList_int8;
-	for (int i = 0; i < DEVICENUM; i++)
-	{
-		cudaSetDevice(i);
-		cublasDestroy(g_handle[i]);
-		//memory_pool->CFree(i, g_device_matList[i]);
-		cudaFree(g_device_matList[i]);
-	}
-	
-    return 0;
+	/* make a permutation of the hash */
+	rhash_sha3_permutation(hash);
 }
+
+#define SHA3_FINALIZED 0x80000000
+
+void rhash_sha3_update(sha3_ctx *ctx, const unsigned char *msg, size_t size)
+{
+	size_t index = (size_t)ctx->rest;
+	size_t block_size = (size_t)ctx->block_size;
+
+	if (ctx->rest & SHA3_FINALIZED) return; /* too late for additional input */
+	ctx->rest = (unsigned)((ctx->rest + size) % block_size);
+
+	/* fill partial block */
+	if (index) {
+		size_t left = block_size - index;
+		memcpy((char*)ctx->message + index, msg, (size < left ? size : left));
+		if (size < left) return;
+
+		/* process partial block */
+		rhash_sha3_process_block(ctx->hash, ctx->message, block_size);
+		msg  += left;
+		size -= left;
+	}
+	while (size >= block_size) {
+		uint64_t* aligned_message_block;
+		if (IS_ALIGNED_64(msg)) {
+			/* the most common case is processing of an already aligned message
+			without copying it */
+			aligned_message_block = (uint64_t*)msg;
+		} else {
+			memcpy(ctx->message, msg, block_size);
+			aligned_message_block = ctx->message;
+		}
+
+		rhash_sha3_process_block(ctx->hash, aligned_message_block, block_size);
+		msg  += block_size;
+		size -= block_size;
+	}
+	if (size) {
+		memcpy(ctx->message, msg, size); /* save leftovers */
+	}
+}
+
+/**
+ * Store calculated hash into the given array.
+ *
+ * @param ctx the algorithm context containing current hashing state
+ * @param result calculated hash in binary form
+ */
+void rhash_sha3_final(sha3_ctx *ctx, unsigned char* result)
+{
+	size_t digest_length = 100 - ctx->block_size / 2;
+	const size_t block_size = ctx->block_size;
+
+	if (!(ctx->rest & SHA3_FINALIZED))
+	{
+		/* clear the rest of the data queue */
+		memset((char*)ctx->message + ctx->rest, 0, block_size - ctx->rest);
+		((char*)ctx->message)[ctx->rest] |= 0x06;
+		((char*)ctx->message)[block_size - 1] |= 0x80;
+
+		/* process final block */
+		rhash_sha3_process_block(ctx->hash, ctx->message, block_size);
+		ctx->rest = SHA3_FINALIZED; /* mark context as finalized */
+	}
+
+	assert(block_size > digest_length);
+	if (result) me64_to_le_str(result, ctx->hash, digest_length);
+}
+
+#ifdef USE_KECCAK
+/**
+* Store calculated hash into the given array.
+*
+* @param ctx the algorithm context containing current hashing state
+* @param result calculated hash in binary form
+*/
+void rhash_keccak_final(sha3_ctx *ctx, unsigned char* result)
+{
+	size_t digest_length = 100 - ctx->block_size / 2;
+	const size_t block_size = ctx->block_size;
+
+	if (!(ctx->rest & SHA3_FINALIZED))
+	{
+		/* clear the rest of the data queue */
+		memset((char*)ctx->message + ctx->rest, 0, block_size - ctx->rest);
+		((char*)ctx->message)[ctx->rest] |= 0x01;
+		((char*)ctx->message)[block_size - 1] |= 0x80;
+
+		/* process final block */
+		rhash_sha3_process_block(ctx->hash, ctx->message, block_size);
+		ctx->rest = SHA3_FINALIZED; /* mark context as finalized */
+	}
+
+	assert(block_size > digest_length);
+	if (result) me64_to_le_str(result, ctx->hash, digest_length);
+}
+#endif /* USE_KECCAK */
