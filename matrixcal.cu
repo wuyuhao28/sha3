@@ -195,9 +195,9 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
 
-			//matrixExtraCal << <256, 256 >> >(source, tmp);
-			//usleep(1);
-			//cudaDeviceSynchronize();
+			matrixExtraCal << <256, 256 >> >(source, tmp);
+			usleep(1);
+			cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 			{
@@ -232,6 +232,7 @@ typedef struct st_matrixMulThreadArg{
 
 void* matrixMul_Thread(void *arg)
 {
+	double start_t, end_t;
 	pstMatrixMulThreadArg matrixMulThreadArg = (pstMatrixMulThreadArg)arg;
 	Mat256x256i8 *res = matrixMulThreadArg->res;
 	int8_t* device_matList = matrixMulThreadArg->device_matList;
@@ -264,6 +265,7 @@ void* matrixMul_Thread(void *arg)
 	cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	start_t = GetMillsec();
 	for (int i = 0; i < LOOP_COUNT; i++)
 	{
 		for (int j = 0; j < SEQUENCE_COUNT; j++)
@@ -288,6 +290,9 @@ void* matrixMul_Thread(void *arg)
 			}
 		}
 	}
+
+	end_t = GetMillsec();
+	printf("kernel time : %lf\n", end_t - start_t);
 
 	cudaStatus = cudaMemcpy(res->d, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
@@ -321,10 +326,11 @@ void iter(
 	//add mutex?
 	if (memcmp(seed, g_seed, 32) == 0)
 	{
-		printf("seed alread exist.\n");
+		//printf("seed alread exist.\n");
 	}
 	else
 	{
+		printf("seed changed.\n");
 		Words32 extSeed = extSeedCreate(seed);
 		memset(matList_int8->matVec, 0, sizeof(Mat256x256i8) * 256);
 		for (int i = 0; i<256; i++) {
