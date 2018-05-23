@@ -196,6 +196,7 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 			}
 
 			matrixExtraCal << <256, 256 >> >(source, tmp);
+			usleep(1);
 			cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
@@ -220,9 +221,9 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 
 typedef struct st_matrixMulThreadArg{
 	int threadID;
-	//int k;
+	int k;
 	uint8_t *msg;
-	//uint32_t len;
+	uint32_t len;
 	//sha3_ctx *ctx;
 	Mat256x256i8 *res;
 	int8_t* device_matList;
@@ -233,12 +234,18 @@ void* matrixMul_Thread(void *arg)
 {
 	pstMatrixMulThreadArg matrixMulThreadArg = (pstMatrixMulThreadArg)arg;
 	Mat256x256i8 *res = matrixMulThreadArg->res;
-	//sha3_ctx *ctx = matrixMulThreadArg->ctx;
 	int8_t* device_matList = matrixMulThreadArg->device_matList;
 	int threadID = matrixMulThreadArg->threadID; 
+	//uint8_t *sequence = matrixMulThreadArg->sequence;
 
-	uint8_t *sequence = matrixMulThreadArg->sequence;
-	//Mat256x256i8 *tmp = new Mat256x256i8;
+	sha3_ctx *ctx = (sha3_ctx *)cpu_memory_pool->mem_malloc(sizeof(*ctx));
+	memset(ctx, 0, sizeof(*ctx));
+	uint8_t *sequence = (uint8_t *)cpu_memory_pool->mem_malloc(sizeof(uint8_t) * 128);
+	memset(sequence, 0, sizeof(uint8_t) * 128);
+	rhash_sha3_256_init(ctx);
+	rhash_sha3_update(ctx, matrixMulThreadArg->msg + (matrixMulThreadArg->len * matrixMulThreadArg->k / 4), matrixMulThreadArg->len / 4);
+	rhash_sha3_final(ctx, sequence);
+
 	Mat256x256i8 *tmp = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
 	tmp->toIdentityMatrix();
 
@@ -291,6 +298,8 @@ void* matrixMul_Thread(void *arg)
 
 	//delete tmp;
 	cpu_memory_pool->mem_free(tmp);
+	cpu_memory_pool->mem_free(sequence);
+	cpu_memory_pool->mem_free(ctx);
 }
 
 void iter(
@@ -429,9 +438,10 @@ void iter(
 		res[i].toIdentityMatrix();
 	Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
 	mat->toIdentityMatrix();
+
 	sha3_ctx *ctx = (sha3_ctx *)cpu_memory_pool->mem_malloc(sizeof(*ctx));
 	memset(ctx, 0, sizeof(*ctx));
-	uint8_t **sequence = (uint8_t **)cpu_memory_pool->mem_malloc(sizeof(uint8_t *) * 4);
+	//uint8_t **sequence = (uint8_t **)cpu_memory_pool->mem_malloc(sizeof(uint8_t *) * 4);
 
 	pthread_t matrixMulThread[4];
 	//pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
@@ -439,20 +449,19 @@ void iter(
 	for (int i = 0; i < 4; i++)
 	{
 		//sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 128);
-		sequence[i] = (uint8_t *)cpu_memory_pool->mem_malloc(sizeof(uint8_t) * 128);
-		memset(sequence[i], 0, sizeof(uint8_t) * 128);
-		rhash_sha3_256_init(ctx);
-		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
-		rhash_sha3_final(ctx, sequence[i]);
+		//sequence[i] = (uint8_t *)cpu_memory_pool->mem_malloc(sizeof(uint8_t) * 128);
+		//memset(sequence[i], 0, sizeof(uint8_t) * 128);
+		//rhash_sha3_256_init(ctx);
+		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
+		//rhash_sha3_final(ctx, sequence[i]);
 
 		matrixMulThreadArg[i].threadID = threadID;
-		//matrixMulThreadArg[i].k = i;
+		matrixMulThreadArg[i].k = i;
 		matrixMulThreadArg[i].msg = msg;
-		//matrixMulThreadArg[i].len = len;
-		//matrixMulThreadArg[i].ctx = ctx;
+		matrixMulThreadArg[i].len = len;
 		matrixMulThreadArg[i].res = &(res[i]);
 		matrixMulThreadArg[i].device_matList = device_matList;
-		matrixMulThreadArg[i].sequence = sequence[i];
+		//matrixMulThreadArg[i].sequence = sequence[i];
 
 		if (pthread_create(&matrixMulThread[i], NULL, matrixMul_Thread, (void *)&matrixMulThreadArg[i]) != 0)
 		{
@@ -469,10 +478,10 @@ void iter(
 			return;
 		}
 		//free(sequence[i]);
-		cpu_memory_pool->mem_free(sequence[i]);
+		//cpu_memory_pool->mem_free(sequence[i]);
 	}
 	//free(sequence);
-	cpu_memory_pool->mem_free(sequence);
+	//cpu_memory_pool->mem_free(sequence);
 	memory_pool->CFree(threadID, device_matList);
 
 	end_t = GetMillsec();
