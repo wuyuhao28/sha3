@@ -9,7 +9,6 @@
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 #include "seed.h"
-#include "CMemcontrol.h"
 
 #include <cublas_v2.h> //cuda×Ô´ø¿âº¯Êý
 //#include <cublas.h> 
@@ -20,8 +19,6 @@
 extern cublasHandle_t g_handle[6];
 extern int8_t* g_device_matList[6];
 extern uint8_t g_seed[32];
-extern uint8_t ** g_sequence;
-extern bool g_seed_update;
 
 #define LOOP_COUNT		2
 #define SEQUENCE_COUNT	32
