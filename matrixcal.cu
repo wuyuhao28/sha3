@@ -490,7 +490,7 @@ void iter(
 	rhash_sha3_final(ctx, result);
 	delete mat;
 	memory_pool->CFree(threadID, res);
-	free(res);
+	free(h_res);
 	free(ctx);
 	/////////////////////////////////////////////////////////////////////////////////////////////
 }
