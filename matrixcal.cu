@@ -235,8 +235,9 @@ void* matrixMul_Thread(void *arg)
 	int8_t *res = matrixMulThreadArg->res;
 	int8_t* device_matList = matrixMulThreadArg->device_matList;
 	int threadID = matrixMulThreadArg->threadID; 
+	int k = matrixMulThreadArg->k;
 
-	uint8_t *sequence = matrixMulThreadArg->sequence;
+	//uint8_t *sequence = matrixMulThreadArg->sequence;
 
 	if (matrixMulThreadArg->updateFlag == false)
 	{
