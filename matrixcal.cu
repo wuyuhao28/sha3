@@ -242,6 +242,7 @@ void* matrixMul_Thread(void *arg)
 
 	if (matrixMulThreadArg->updateFlag == false)
 	{
+		printf("updateFlag is false.\n");
 		sha3_ctx *ctx = (sha3_ctx *)cpu_memory_pool->mem_malloc(sizeof(*ctx));
 		memset(ctx, 0, sizeof(*ctx));
 		//uint8_t *sequence = (uint8_t *)cpu_memory_pool->mem_malloc(sizeof(uint8_t) * 128);
