@@ -25,122 +25,78 @@
 //}
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-
-//__global__ void mulKernel(int8_t* sourceMatrix, int8_t* tmpMatrix, int8_t* seqMatrix, double* atomic)
+//#define TILE_WIDTH 16
+//__global__ void matrixMultiplyShared(int8_t *A, int8_t *B_all, int8_t *C, uint8_t index)
 //{
-//	int tid = threadIdx.x + (int)blockIdx.x * blockDim.x;
-//	int curRow = threadIdx.x;
-//	int curCol = blockIdx.x;
+//	//@@ Insert code to implement matrix multiplication here
+//	//@@ You have to use shared memory for this MP
 //
-//	if (tid < 65536){
+//	__shared__ int8_t sharedM[TILE_WIDTH][TILE_WIDTH];
+//	__shared__ int8_t sharedN[TILE_WIDTH][TILE_WIDTH];
+//	int bx = blockIdx.x;
+//	int by = blockIdx.y;
+//	int tx = threadIdx.x;
+//	int ty = threadIdx.y;
+//	int row = by*TILE_WIDTH + ty;
+//	int col = bx*TILE_WIDTH + tx;
+//	int v = 0;
 //
-//		for (int i = 0; i < LOOP_COUNT; i++)
-//		{
-//			for (int j = 0; j < SEQUENCE_COUNT; j++)
-//			{
-//				atomic[0] = 0;
-//				atomic[1] = 0;
-//				int tmp = 0;
-//				for (int k = 0; k < 256; k++){
-//					tmp += tmpMatrix[curRow * BLOCK_SIZE + k] * seqMatrix[j * 65536 + k * BLOCK_SIZE + curCol];
-//				}
-//				//extra calculate
-//				sourceMatrix[curRow * BLOCK_SIZE + curCol] = ((tmp & 0xFF) + ((tmp >> 8) & 0xFF)) & 0xFF;
-//				__syncthreads();
-//				if (curRow == 0)
-//				{
-//					atomicAdd(&atomic[0], 1);
-//				}
-//				while (atomic[0] < 256) {}
+//	int8_t *B = B_all + index * BLOCK_SIZE * BLOCK_SIZE;
 //
-//				//source -> tmp
-//				tmpMatrix[curRow * BLOCK_SIZE + curCol] = sourceMatrix[curRow * BLOCK_SIZE + curCol];
-//				__syncthreads();
-//				if (curRow == 0)
-//				{
-//					atomicAdd(&atomic[1], 1);
-//				}
-//				while (atomic[1] < 256) {}
+//	for (int i = 0; i < (int)(ceil((float)BLOCK_SIZE / TILE_WIDTH)); i++)
+//	{
+//		if (i*TILE_WIDTH + tx < BLOCK_SIZE && row < BLOCK_SIZE)
+//			sharedM[ty][tx] = A[row*BLOCK_SIZE + i*TILE_WIDTH + tx];
+//		else
+//			sharedM[ty][tx] = 0.0;
 //
-//				//atomicAdd(&atomic[1], 1);
-//				//__iAtomicAdd(&atomic[1], 1);
-//				//while (atomic[1] < 65535) {}
-//			}
-//		}
+//		if (i*TILE_WIDTH + ty < BLOCK_SIZE && col < BLOCK_SIZE)
+//			sharedN[ty][tx] = B[(i*TILE_WIDTH + ty)*BLOCK_SIZE + col];
+//		else
+//			sharedN[ty][tx] = 0.0;
+//		__syncthreads();
+//
+//		for (int j = 0; j < TILE_WIDTH; j++)
+//			v += sharedM[ty][j] * sharedN[j][tx];
+//		__syncthreads();
 //	}
 //
+//	if (row < BLOCK_SIZE && col < BLOCK_SIZE)
+//	{
+//		//extra calculate
+//		v = ((v & 0xFF) + ((v >> 8) & 0xFF)) & 0xFF;
+//
+//		C[row*BLOCK_SIZE + col] = v;
+//	}
 //}
+//
+//__global__ void Matrix_Mul(int8_t *md, int8_t *nd, int8_t *pd, uint8_t index)
+//{
+//	int bx, by, tx, ty;
+//	bx = blockIdx.x;
+//	by = blockIdx.y;
+//	tx = threadIdx.x;
+//	ty = threadIdx.y;
+//	int mulResult = 0;
+//	int8_t *B = nd + index * 1 * BLOCK_SIZE * BLOCK_SIZE;		//sizeof(uint8_t) = 1
+//	for (int i = 0; i < gridDim.x; ++i)
+//	{
+//		__shared__ int8_t d_m[TILE_WIDTH][TILE_WIDTH];
+//		__shared__ int8_t d_n[TILE_WIDTH][TILE_WIDTH];
+//		d_m[ty][tx] = *(md + (by * blockDim.y + ty) * BLOCK_SIZE + i * blockDim.x + tx);
+//		d_n[ty][tx] = *(B + (i * blockDim.y + ty) * BLOCK_SIZE + bx * blockDim.x + tx);
+//		__syncthreads();
+//		for (int j = 0; j < blockDim.x; ++j)
+//		{
+//			mulResult += d_m[ty][j] * d_n[j][tx];
+//		}
+//		__syncthreads();
+//	}
+//	pd[(by*blockDim.y + ty)*BLOCK_SIZE + bx*blockDim.x + tx] = ((mulResult & 0xFF) + ((mulResult >> 8) & 0xFF)) & 0xFF;
+//}
+//
 
 
-#define TILE_WIDTH 16
-__global__ void matrixMultiplyShared(int8_t *A, int8_t *B_all, int8_t *C, uint8_t index)
-{
-	//@@ Insert code to implement matrix multiplication here
-	//@@ You have to use shared memory for this MP
-
-	__shared__ int8_t sharedM[TILE_WIDTH][TILE_WIDTH];
-	__shared__ int8_t sharedN[TILE_WIDTH][TILE_WIDTH];
-	int bx = blockIdx.x;
-	int by = blockIdx.y;
-	int tx = threadIdx.x;
-	int ty = threadIdx.y;
-	int row = by*TILE_WIDTH + ty;
-	int col = bx*TILE_WIDTH + tx;
-	int v = 0;
-
-	int8_t *B = B_all + index * BLOCK_SIZE * BLOCK_SIZE;
-
-	for (int i = 0; i < (int)(ceil((float)BLOCK_SIZE / TILE_WIDTH)); i++)
-	{
-		if (i*TILE_WIDTH + tx < BLOCK_SIZE && row < BLOCK_SIZE)
-			sharedM[ty][tx] = A[row*BLOCK_SIZE + i*TILE_WIDTH + tx];
-		else
-			sharedM[ty][tx] = 0.0;
-
-		if (i*TILE_WIDTH + ty < BLOCK_SIZE && col < BLOCK_SIZE)
-			sharedN[ty][tx] = B[(i*TILE_WIDTH + ty)*BLOCK_SIZE + col];
-		else
-			sharedN[ty][tx] = 0.0;
-		__syncthreads();
-
-		for (int j = 0; j < TILE_WIDTH; j++)
-			v += sharedM[ty][j] * sharedN[j][tx];
-		__syncthreads();
-	}
-
-	if (row < BLOCK_SIZE && col < BLOCK_SIZE)
-	{
-		//extra calculate
-		v = ((v & 0xFF) + ((v >> 8) & 0xFF)) & 0xFF;
-
-		C[row*BLOCK_SIZE + col] = v;
-	}
-}
-
-__global__ void Matrix_Mul(int8_t *md, int8_t *nd, int8_t *pd, uint8_t index)
-{
-	int bx, by, tx, ty;
-	bx = blockIdx.x;
-	by = blockIdx.y;
-	tx = threadIdx.x;
-	ty = threadIdx.y;
-	int mulResult = 0;
-	int8_t *B = nd + index * 1 * BLOCK_SIZE * BLOCK_SIZE;		//sizeof(uint8_t) = 1
-	for (int i = 0; i < gridDim.x; ++i)
-	{
-		__shared__ int8_t d_m[TILE_WIDTH][TILE_WIDTH];
-		__shared__ int8_t d_n[TILE_WIDTH][TILE_WIDTH];
-		d_m[ty][tx] = *(md + (by * blockDim.y + ty) * BLOCK_SIZE + i * blockDim.x + tx);
-		d_n[ty][tx] = *(B + (i * blockDim.y + ty) * BLOCK_SIZE + bx * blockDim.x + tx);
-		__syncthreads();
-		for (int j = 0; j < blockDim.x; ++j)
-		{
-			mulResult += d_m[ty][j] * d_n[j][tx];
-		}
-		__syncthreads();
-	}
-	pd[(by*blockDim.y + ty)*BLOCK_SIZE + bx*blockDim.x + tx] = ((mulResult & 0xFF) + ((mulResult >> 8) & 0xFF)) & 0xFF;
-}
 
 __global__ void matrixExtraCal(int *sourceMatrix, int8_t *tmpMatrix)
 {
@@ -219,6 +175,31 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 	return cudaStatus;
 }
 
+__global__ void arrProcess(int8_t *res, uint32_t *d_arr, int8_t *mat)
+{
+	int curRow = blockIdx.x;
+	int curCol = threadIdx.x;
+
+	int res_tmp = (int)*(res + BLOCK_SIZE * THREAD_SIZE + curRow * BLOCK_SIZE + curCol) + (int)*(res + curRow * BLOCK_SIZE + curCol); //res[0] + res[1]
+	int8_t mat_tmp = (res_tmp & 0xFF);
+	res_tmp = (int)mat + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 2 + curRow * BLOCK_SIZE + curCol);	//mat + res[2]
+	mat_tmp = (res_tmp & 0xFF);
+	res_tmp = (int)mat + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 3 + curRow * BLOCK_SIZE + curCol);	//mat + res[3]
+	mat_tmp = (res_tmp & 0xFF);
+	*(mat + curRow * BLOCK_SIZE + curCol) = mat_tmp;
+	__syncthreads();
+
+	if (curCol < 64)
+	{
+		uint32_t d;
+		d = ((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 192)))) << 24) |
+			((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 128)))) << 16) |
+			((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 64)))) << 8) |
+			((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol)))) << 0);
+		d_arr[curRow * BLOCK_SIZE + curCol] = d;
+	}
+}
+
 typedef struct st_matrixMulThreadArg{
 	bool updateFlag;
 	int threadID;
@@ -226,7 +207,8 @@ typedef struct st_matrixMulThreadArg{
 	uint8_t *msg;
 	uint32_t len;
 	//sha3_ctx *ctx;
-	Mat256x256i8 *res;
+	//Mat256x256i8 *res;
+	int8_t* res;
 	int8_t* device_matList;
 	uint8_t *sequence;
 }stMatrixMulThreadArg, *pstMatrixMulThreadArg;
@@ -234,7 +216,8 @@ typedef struct st_matrixMulThreadArg{
 void* matrixMul_Thread(void *arg)
 {
 	pstMatrixMulThreadArg matrixMulThreadArg = (pstMatrixMulThreadArg)arg;
-	Mat256x256i8 *res = matrixMulThreadArg->res;
+	//Mat256x256i8 *res = matrixMulThreadArg->res;
+	int8_t *res = matrixMulThreadArg->res;
 	int8_t* device_matList = matrixMulThreadArg->device_matList;
 	int threadID = matrixMulThreadArg->threadID; 
 	//uint8_t *sequence = matrixMulThreadArg->sequence;
@@ -297,7 +280,7 @@ void* matrixMul_Thread(void *arg)
 		}
 	}
 
-	cudaStatus = cudaMemcpy(res->d, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
+	cudaStatus = cudaMemcpy(res, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
@@ -444,11 +427,9 @@ void iter(
 	//sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 	//uint8_t **sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
 	//uint8_t **sequence = (uint8_t **)cpu_memory_pool->mem_malloc(sizeof(uint8_t *) * 4);
-	Mat256x256i8 *res = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8) * 4);
-	for (int i = 0; i < 4; i++)
-		res[i].toIdentityMatrix();
-	Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
-	mat->toIdentityMatrix();
+
+	//Mat256x256i8 *res = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8) * 4);
+	int8_t *res = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 4);
 
 	sha3_ctx *ctx = (sha3_ctx *)cpu_memory_pool->mem_malloc(sizeof(*ctx));
 	memset(ctx, 0, sizeof(*ctx));
@@ -469,7 +450,7 @@ void iter(
 		matrixMulThreadArg[i].k = i;
 		matrixMulThreadArg[i].msg = msg;
 		matrixMulThreadArg[i].len = len;
-		matrixMulThreadArg[i].res = &(res[i]);
+		matrixMulThreadArg[i].res = res + i * sizeof(int8_t) * 256 * 256;
 		matrixMulThreadArg[i].device_matList = device_matList;
 		//matrixMulThreadArg[i].sequence = sequence[i];
 
@@ -497,19 +478,46 @@ void iter(
 	end_t = GetMillsec();
 	printf("iter multi porcess time: %lf\n", end_t - start_t);
 
-	mat->add(res[0], res[1]);
-	mat->add(*mat, res[2]);
-	mat->add(*mat, res[3]);;
-	Arr256x64i32 arr(*mat);
-	arr.reduceFNV();
+	//Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
+	//mat->add(res[0], res[1]);
+	//mat->add(*mat, res[2]);
+	//mat->add(*mat, res[3]);
+	//Arr256x64i32 arr(*mat);
+	//arr.reduceFNV();
+
+	//GPU arr process
+	uint32_t *d_arr = (uint32_t *)memory_pool->CMalloc(threadID, sizeof(uint32_t) * 256 * 64);
+	int8_t *mat = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256);
+	uint32_t arr[256][64];
+	arrProcess << <256, 256 >> >(res, d_arr, mat);
+	cudaDeviceSynchronize();
+	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+	{
+		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
+	}
+	cudaStatus = cudaMemcpy(arr, d_arr, sizeof(uint32_t) * 256 * 64, cudaMemcpyDeviceToHost);
+	if (cudaStatus != cudaSuccess)
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	//arr.reduceFNV();
+	for (int k = 256; k>1; k = k / 2) {
+		for (int j = 0; j<k / 2; j++) {
+			for (int i = 0; i<64; i++) {
+				arr[j][i] = FNV(arr[j][i], arr[j + k / 2][i]);
+			}
+		}
+	}
+
 	rhash_sha3_256_init(ctx);
-	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	rhash_sha3_update(ctx, (uint8_t*)(arr[0]), 256);
 	rhash_sha3_final(ctx, result);
 	//delete mat;
 	//delete[] res;
 	//free(ctx);
-	cpu_memory_pool->mem_free(mat);
-	cpu_memory_pool->mem_free(res);
+	//cpu_memory_pool->mem_free(mat);
+	//cpu_memory_pool->mem_free(res);
+	memory_pool->CFree(threadID, mat);
+	memory_pool->CFree(threadID, res);
 	cpu_memory_pool->mem_free(ctx);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
