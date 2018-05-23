@@ -195,9 +195,9 @@ cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix,
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
 
-			matrixExtraCal << <256, 256 >> >(source, tmp);
-			usleep(1);
-			cudaDeviceSynchronize();
+			//matrixExtraCal << <256, 256 >> >(source, tmp);
+			//usleep(1);
+			//cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 			{
