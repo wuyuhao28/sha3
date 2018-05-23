@@ -489,7 +489,8 @@ void iter(
 	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
 	rhash_sha3_final(ctx, result);
 	delete mat;
-	delete[] res;
+	memory_pool->CFree(threadID, res);
+	free(res);
 	free(ctx);
 	/////////////////////////////////////////////////////////////////////////////////////////////
 }
