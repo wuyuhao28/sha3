@@ -180,24 +180,26 @@ __global__ void arrProcess(int8_t *res, uint32_t *d_arr, int8_t *mat)
 	int curRow = blockIdx.x;
 	int curCol = threadIdx.x;
 
-	int res_tmp = (int)*(res + BLOCK_SIZE * THREAD_SIZE + curRow * BLOCK_SIZE + curCol) + (int)*(res + curRow * BLOCK_SIZE + curCol); //res[0] + res[1]
+	int res_tmp = (int)(res + sizeof(int8_t) * BLOCK_SIZE * THREAD_SIZE)[curRow * BLOCK_SIZE + curCol] 
+				+ (int)res[curRow * BLOCK_SIZE + curCol]; //res[0] + res[1]
 	int8_t mat_tmp = (res_tmp & 0xFF);
-	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 2 + curRow * BLOCK_SIZE + curCol);	//mat + res[2]
+	res_tmp = (int)mat_tmp + (int)(res + sizeof(int8_t) * BLOCK_SIZE * THREAD_SIZE * 2)[curRow * BLOCK_SIZE + curCol];	//mat + res[2]
 	mat_tmp = (res_tmp & 0xFF);
-	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 3 + curRow * BLOCK_SIZE + curCol);	//mat + res[3]
+	res_tmp = (int)mat_tmp + (int)(res + sizeof(int8_t) * BLOCK_SIZE * THREAD_SIZE * 3)[curRow * BLOCK_SIZE + curCol];	//mat + res[3]
 	mat_tmp = (res_tmp & 0xFF);
-	*(mat + curRow * BLOCK_SIZE + curCol) = mat_tmp;
-	//__syncthreads();
+	//*(mat + curRow * BLOCK_SIZE + curCol) = mat_tmp;
+	mat[curRow * BLOCK_SIZE + curCol] = mat_tmp;
+	__syncthreads();
 
-	//if (curCol < 64)
-	//{
-	//	uint32_t d;
-	//	d = ((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 192)))) << 24) |
-	//		((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 128)))) << 16) |
-	//		((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 64)))) << 8) |
-	//		((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol)))) << 0);
-	//	d_arr[curRow * BLOCK_SIZE + curCol] = d;
-	//}
+	if (curCol < 64)
+	{
+		uint32_t d;
+		d = ((uint32_t(uint8_t(mat[curRow * BLOCK_SIZE + curCol + 192]))) << 24) |
+			((uint32_t(uint8_t(mat[curRow * BLOCK_SIZE + curCol + 128]))) << 16) |
+			((uint32_t(uint8_t(mat[curRow * BLOCK_SIZE + curCol + 64]))) << 8) |
+			((uint32_t(uint8_t(mat[curRow * BLOCK_SIZE + curCol]))) << 0);
+		d_arr[curRow * BLOCK_SIZE + curCol] = d;
+	}
 }
 
 typedef struct st_matrixMulThreadArg{
@@ -482,26 +484,26 @@ void iter(
 	end_t = GetMillsec();
 	printf("iter multi porcess time: %lf\n", end_t - start_t);
 
-	Mat256x256i8 *h_res = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8) * 4);
-	for (int i = 0; i < 4; i++)
-	{
-		cudaStatus = cudaMemcpy(h_res[i].d, res + i * sizeof(int8_t) * 256 * 256, sizeof(int8_t) * 256 * 256, cudaMemcpyDeviceToHost);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	}
+	//Mat256x256i8 *h_res = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8) * 4);
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	cudaStatus = cudaMemcpy(h_res[i].d, res + i * sizeof(int8_t) * 256 * 256, sizeof(int8_t) * 256 * 256, cudaMemcpyDeviceToHost);
+	//	if (cudaStatus != cudaSuccess)
+	//		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	//}
 
-	Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
-	//mat->add(res[0], res[1]);
-	//mat->add(*mat, res[2]);
-	//mat->add(*mat, res[3]);
-	mat->add(h_res[0], h_res[1]);
-	mat->add(*mat, h_res[2]);
-	mat->add(*mat, h_res[3]);
-	Arr256x64i32 arr(*mat);
-	arr.reduceFNV();
+	//Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
+	////mat->add(res[0], res[1]);
+	////mat->add(*mat, res[2]);
+	////mat->add(*mat, res[3]);
+	//mat->add(h_res[0], h_res[1]);
+	//mat->add(*mat, h_res[2]);
+	//mat->add(*mat, h_res[3]);
+	//Arr256x64i32 arr(*mat);
+	//arr.reduceFNV();
 
 	//GPU arr process
-	/*uint32_t *d_arr = (uint32_t *)memory_pool->CMalloc(threadID, sizeof(uint32_t) * 256 * 64);
+	uint32_t *d_arr = (uint32_t *)memory_pool->CMalloc(threadID, sizeof(uint32_t) * 256 * 64);
 	int8_t *mat = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256);
 	uint32_t arr[256][64];
 	arrProcess << <256, 256 >> >(res, d_arr, mat);
@@ -513,19 +515,19 @@ void iter(
 
 	cudaStatus = cudaMemcpy(arr, d_arr, sizeof(uint32_t) * 256 * 64, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);*/
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	//arr.reduceFNV();
-	//for (int k = 256; k > 1; k = k / 2) {
-	//	for (int j = 0; j < k / 2; j++) {
-	//		for (int i = 0; i < 64; i++) {
-	//			arr[j][i] = FNV(arr[j][i], arr[j + k / 2][i]);
-	//		}
-	//	}
-	//}
+	for (int k = 256; k > 1; k = k / 2) {
+		for (int j = 0; j < k / 2; j++) {
+			for (int i = 0; i < 64; i++) {
+				arr[j][i] = FNV(arr[j][i], arr[j + k / 2][i]);
+			}
+		}
+	}
 
 	rhash_sha3_256_init(ctx);
-	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-	//rhash_sha3_update(ctx, (uint8_t*)(arr[0]), 256);
+	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	rhash_sha3_update(ctx, (uint8_t*)(arr[0]), 256);
 	rhash_sha3_final(ctx, result);
 	//delete mat;
 	//delete[] res;
