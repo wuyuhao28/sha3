@@ -14,6 +14,8 @@ AlgriMatList* matList_int8;
 int g_deviceNum;
 cublasHandle_t g_handle[6];
 int8_t* g_device_matList[6];
+uint8_t ** g_sequence;
+bool g_seed_update;
 
 static uint8_t g_msg[32] = {
         0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
@@ -101,6 +103,21 @@ int main(void)
 	Words32 extSeed = extSeedCreate(g_seed);
 	matList_int8 = new AlgriMatList;
 	matList_int8->init(extSeed);
+
+	sha3_ctx *ctx = (sha3_ctx *)malloc(sizeof(*ctx));
+	memset(ctx, 0, sizeof(*ctx));
+	g_sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
+	for (int i = 0; i < 4; i++)
+	{
+		g_sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 128);
+		g_sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 128);
+		memset(g_sequence[i], 0, sizeof(uint8_t) * 128);
+		rhash_sha3_256_init(ctx);
+		rhash_sha3_update(ctx, g_msg + (32 * i / 4), 32 / 4);
+		rhash_sha3_final(ctx, g_sequence[i]);
+	}
+	free(ctx);
+	g_seed_update = true;
 
 	for (int i = 0; i < DEVICENUM; i++)
 	{
