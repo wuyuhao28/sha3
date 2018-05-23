@@ -181,11 +181,11 @@ __global__ void arrProcess(int8_t *res, uint32_t *d_arr, int8_t *mat)
 	int curCol = threadIdx.x;
 
 	int res_tmp = (int)*(res + BLOCK_SIZE * THREAD_SIZE + curRow * BLOCK_SIZE + curCol) + (int)*(res + curRow * BLOCK_SIZE + curCol); //res[0] + res[1]
-	int8_t mat_tmp = (int8_t)(res_tmp & 0xFF);
+	int8_t mat_tmp = (res_tmp & 0xFF);
 	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 2 + curRow * BLOCK_SIZE + curCol);	//mat + res[2]
-	mat_tmp = (int8_t)(res_tmp & 0xFF);
+	mat_tmp = (res_tmp & 0xFF);
 	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 3 + curRow * BLOCK_SIZE + curCol);	//mat + res[3]
-	mat_tmp = (int8_t)(res_tmp & 0xFF);
+	mat_tmp = (res_tmp & 0xFF);
 	*(mat + curRow * BLOCK_SIZE + curCol) = mat_tmp;
 	__syncthreads();
 
@@ -245,15 +245,15 @@ void* matrixMul_Thread(void *arg)
 
 	int matrixSize = sizeof(int8_t) * 256 * 256;
 	int *source;
-	//int8_t *tmpMatrix;
+	int8_t *tmpMatrix;
 	source = (int *)memory_pool->CMalloc(threadID, sizeof(int) * 256 * 256);
-	//tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
+	tmpMatrix = (int8_t *)memory_pool->CMalloc(threadID, matrixSize);
 
 	cudaError_t cudaStatus = cudaSetDevice(threadID);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	//cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
-	cudaStatus = cudaMemcpy(res, tmp->d, matrixSize, cudaMemcpyHostToDevice);
+	cudaStatus = cudaMemcpy(tmpMatrix, tmp->d, matrixSize, cudaMemcpyHostToDevice);
+	//cudaStatus = cudaMemcpy(res, tmp->d, matrixSize, cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	for (int i = 0; i < LOOP_COUNT; i++)
@@ -261,8 +261,8 @@ void* matrixMul_Thread(void *arg)
 		for (int j = 0; j < SEQUENCE_COUNT; j++)
 		{
 			cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
-				//(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
-				(void *)&alpha, (void *)res, CUDA_R_8I, 256,
+				(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
+				//(void *)&alpha, (void *)res, CUDA_R_8I, 256,
 				(void *)(device_matList + g_sequence[k][j] * matrixSize), CUDA_R_8I, 256,
 				(void *)&beta, (void *)source, CUDA_R_32I, 256,
 				CUDA_R_32I, CUBLAS_GEMM_DFALT);
@@ -272,8 +272,8 @@ void* matrixMul_Thread(void *arg)
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
 
-			//matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
-			matrixExtraCal << <256, 256 >> >(source, res);
+			matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
+			//matrixExtraCal << <256, 256 >> >(source, res);
 			cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
@@ -284,10 +284,11 @@ void* matrixMul_Thread(void *arg)
 	}
 
 	//cudaStatus = cudaMemcpy(res, tmpMatrix, matrixSize, cudaMemcpyDeviceToHost);
-	//if (cudaStatus != cudaSuccess)
-		//printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	cudaStatus = cudaMemcpy(res, tmpMatrix, matrixSize, cudaMemcpyDeviceToDevice);
+	if (cudaStatus != cudaSuccess)
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 
-	//memory_pool->CFree(threadID, tmpMatrix);
+	memory_pool->CFree(threadID, tmpMatrix);
 	memory_pool->CFree(threadID, source);
 
 	//delete tmp;
@@ -481,12 +482,12 @@ void iter(
 	end_t = GetMillsec();
 	printf("iter multi porcess time: %lf\n", end_t - start_t);
 
-	//Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
-	//mat->add(res[0], res[1]);
-	//mat->add(*mat, res[2]);
-	//mat->add(*mat, res[3]);
-	//Arr256x64i32 arr(*mat);
-	//arr.reduceFNV();
+	/*Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
+	mat->add(res[0], res[1]);
+	mat->add(*mat, res[2]);
+	mat->add(*mat, res[3]);
+	Arr256x64i32 arr(*mat);
+	arr.reduceFNV();*/
 
 	//GPU arr process
 	uint32_t *d_arr = (uint32_t *)memory_pool->CMalloc(threadID, sizeof(uint32_t) * 256 * 64);
@@ -502,9 +503,9 @@ void iter(
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	//arr.reduceFNV();
-	for (int k = 256; k>1; k = k / 2) {
-		for (int j = 0; j<k / 2; j++) {
-			for (int i = 0; i<64; i++) {
+	for (int k = 256; k > 1; k = k / 2) {
+		for (int j = 0; j < k / 2; j++) {
+			for (int i = 0; i < 64; i++) {
 				arr[j][i] = FNV(arr[j][i], arr[j + k / 2][i]);
 			}
 		}
