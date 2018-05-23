@@ -277,7 +277,7 @@ void* matrixMul_Thread(void *arg)
 			cublasStatus_t cublasSatus = cublasGemmEx(g_handle[threadID], CUBLAS_OP_T, CUBLAS_OP_T, 256, 256, 256,
 				//(void *)&alpha, (void *)tmpMatrix, CUDA_R_8I, 256,
 				(void *)&alpha, (void *)res, CUDA_R_8I, 256,
-				(void *)(device_matList + sequence[j] * matrixSize), CUDA_R_8I, 256,
+				(void *)(device_matList + g_sequence[k][j] * matrixSize), CUDA_R_8I, 256,
 				(void *)&beta, (void *)source, CUDA_R_32I, 256,
 				CUDA_R_32I, CUBLAS_GEMM_DFALT);
 
