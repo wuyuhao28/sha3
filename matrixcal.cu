@@ -181,11 +181,11 @@ __global__ void arrProcess(int8_t *res, uint32_t *d_arr, int8_t *mat)
 	int curCol = threadIdx.x;
 
 	int res_tmp = (int)*(res + BLOCK_SIZE * THREAD_SIZE + curRow * BLOCK_SIZE + curCol) + (int)*(res + curRow * BLOCK_SIZE + curCol); //res[0] + res[1]
-	int8_t mat_tmp = (res_tmp & 0xFF);
-	res_tmp = (int)mat + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 2 + curRow * BLOCK_SIZE + curCol);	//mat + res[2]
-	mat_tmp = (res_tmp & 0xFF);
-	res_tmp = (int)mat + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 3 + curRow * BLOCK_SIZE + curCol);	//mat + res[3]
-	mat_tmp = (res_tmp & 0xFF);
+	int8_t mat_tmp = (int8_t)(res_tmp & 0xFF);
+	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 2 + curRow * BLOCK_SIZE + curCol);	//mat + res[2]
+	mat_tmp = (int8_t)(res_tmp & 0xFF);
+	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 3 + curRow * BLOCK_SIZE + curCol);	//mat + res[3]
+	mat_tmp = (int8_t)(res_tmp & 0xFF);
 	*(mat + curRow * BLOCK_SIZE + curCol) = mat_tmp;
 	__syncthreads();
 
