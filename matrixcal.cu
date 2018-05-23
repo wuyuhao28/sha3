@@ -326,7 +326,7 @@ void iter(
 	if (memcmp(seed, g_seed, 32) == 0)
 	{
 		//printf("seed alread exist.\n");
-		g_seed_update = false;
+		g_seed_update = true;
 	}
 	else
 	{
