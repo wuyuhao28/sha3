@@ -482,15 +482,26 @@ void iter(
 	end_t = GetMillsec();
 	printf("iter multi porcess time: %lf\n", end_t - start_t);
 
-	/*Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
-	mat->add(res[0], res[1]);
-	mat->add(*mat, res[2]);
-	mat->add(*mat, res[3]);
+	Mat256x256i8 *h_res = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8) * 4);
+	for (int i = 0; i < 4; i++)
+	{
+		cudaStatus = cudaMemcpy(h_res[i].d, res + i * sizeof(int8_t) * 256 * 256, sizeof(int8_t) * 256 * 256, cudaMemcpyDeviceToHost);
+		if (cudaStatus != cudaSuccess)
+			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	}
+
+	Mat256x256i8 *mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
+	//mat->add(res[0], res[1]);
+	//mat->add(*mat, res[2]);
+	//mat->add(*mat, res[3]);
+	mat->add(h_res[0], h_res[1]);
+	mat->add(*mat, h_res[2]);
+	mat->add(*mat, h_res[3]);
 	Arr256x64i32 arr(*mat);
-	arr.reduceFNV();*/
+	arr.reduceFNV();
 
 	//GPU arr process
-	uint32_t *d_arr = (uint32_t *)memory_pool->CMalloc(threadID, sizeof(uint32_t) * 256 * 64);
+	/*uint32_t *d_arr = (uint32_t *)memory_pool->CMalloc(threadID, sizeof(uint32_t) * 256 * 64);
 	int8_t *mat = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256);
 	uint32_t arr[256][64];
 	arrProcess << <256, 256 >> >(res, d_arr, mat);
@@ -500,25 +511,9 @@ void iter(
 		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
 	}
 
-	//cudaStatus = cudaMemcpy(arr, d_arr, sizeof(uint32_t) * 256 * 64, cudaMemcpyDeviceToHost);
-	//if (cudaStatus != cudaSuccess)
-	//	printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-
-	Mat256x256i8 *h_mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
-	cudaStatus = cudaMemcpy(h_mat->d, mat, sizeof(int8_t) * 256 * 256, cudaMemcpyDeviceToHost);
+	cudaStatus = cudaMemcpy(arr, d_arr, sizeof(uint32_t) * 256 * 64, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
-		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	Arr256x64i32 h_arr(*h_mat);
-	h_arr.reduceFNV();
-	for (int k = 256; k > 1; k = k / 2) {
-		for (int j = 0; j < k / 2; j++) {
-			for (int i = 0; i < 64; i++) {
-				h_arr.d[j][i] = FNV(h_arr.d[j][i], h_arr.d[j + k / 2][i]);
-			}
-		}
-	}
-	cpu_memory_pool->mem_free(h_mat);
-
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);*/
 	//arr.reduceFNV();
 	//for (int k = 256; k > 1; k = k / 2) {
 	//	for (int j = 0; j < k / 2; j++) {
@@ -529,9 +524,8 @@ void iter(
 	//}
 
 	rhash_sha3_256_init(ctx);
-	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
 	//rhash_sha3_update(ctx, (uint8_t*)(arr[0]), 256);
-	rhash_sha3_update(ctx, (uint8_t*)(h_arr.d[0]), 256);
 	rhash_sha3_final(ctx, result);
 	//delete mat;
 	//delete[] res;
