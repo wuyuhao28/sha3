@@ -517,7 +517,7 @@ void iter(
 			}
 		}
 	}
-	)cpu_memory_pool->mem_free(h_mat);
+	cpu_memory_pool->mem_free(h_mat);
 
 	//arr.reduceFNV();
 	//for (int k = 256; k > 1; k = k / 2) {
