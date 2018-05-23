@@ -276,7 +276,8 @@ void* matrixMul_Thread(void *arg)
 				printf("cublasGemmEx error!, j: %d cublasError: %d\n", j, cublasSatus);
 			}
 
-			matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
+			//matrixExtraCal << <256, 256 >> >(source, tmpMatrix);
+			matrixExtraCal << <256, 256 >> >(source, res);
 			cudaDeviceSynchronize();
 
 			if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
