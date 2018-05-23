@@ -320,7 +320,7 @@ void iter(
 	cudaSetDevice(threadID);
 	int8_t* device_matList;
 	
-	double start_t, end_t;
+	//double start_t, end_t;
 	//start_t = GetMillsec();
 	//add mutex?
 	if (memcmp(seed, g_seed, 32) == 0)
@@ -435,7 +435,7 @@ void iter(
 
 	////////////////////////////////////////////////////////////////////////////////////
 	//multeThread process 
-	start_t = GetMillsec();
+	//start_t = GetMillsec();
 	//Mat256x256i8 *res = new Mat256x256i8[4];
 	int8_t *res = (int8_t *)memory_pool->CMalloc(threadID, sizeof(int8_t) * 256 * 256 * 4);
 	Mat256x256i8 *mat = new Mat256x256i8;
@@ -489,8 +489,8 @@ void iter(
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	}
 
-	end_t = GetMillsec();
-	printf("iter multi porcess time: %lf\n", end_t - start_t);
+	//end_t = GetMillsec();
+	//printf("iter multi porcess time: %lf\n", end_t - start_t);
 
 	mat->add(h_res[0], h_res[1]);
 	mat->add(*mat, h_res[2]);
