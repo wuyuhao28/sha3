@@ -187,17 +187,17 @@ __global__ void arrProcess(int8_t *res, uint32_t *d_arr, int8_t *mat)
 	res_tmp = (int)mat_tmp + (int)*(res + BLOCK_SIZE * THREAD_SIZE * 3 + curRow * BLOCK_SIZE + curCol);	//mat + res[3]
 	mat_tmp = (res_tmp & 0xFF);
 	*(mat + curRow * BLOCK_SIZE + curCol) = mat_tmp;
-	__syncthreads();
+	//__syncthreads();
 
-	if (curCol < 64)
-	{
-		uint32_t d;
-		d = ((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 192)))) << 24) |
-			((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 128)))) << 16) |
-			((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 64)))) << 8) |
-			((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol)))) << 0);
-		d_arr[curRow * BLOCK_SIZE + curCol] = d;
-	}
+	//if (curCol < 64)
+	//{
+	//	uint32_t d;
+	//	d = ((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 192)))) << 24) |
+	//		((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 128)))) << 16) |
+	//		((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol + 64)))) << 8) |
+	//		((uint32_t(uint8_t(*(mat + curRow * BLOCK_SIZE + curCol)))) << 0);
+	//	d_arr[curRow * BLOCK_SIZE + curCol] = d;
+	//}
 }
 
 typedef struct st_matrixMulThreadArg{
@@ -499,21 +499,39 @@ void iter(
 	{
 		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
 	}
-	cudaStatus = cudaMemcpy(arr, d_arr, sizeof(uint32_t) * 256 * 64, cudaMemcpyDeviceToHost);
+
+	//cudaStatus = cudaMemcpy(arr, d_arr, sizeof(uint32_t) * 256 * 64, cudaMemcpyDeviceToHost);
+	//if (cudaStatus != cudaSuccess)
+	//	printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+
+	Mat256x256i8 *h_mat = (Mat256x256i8 *)cpu_memory_pool->mem_malloc(sizeof(Mat256x256i8));
+	cudaStatus = cudaMemcpy(h_mat->d, mat, sizeof(int8_t) * 256 * 256, cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	//arr.reduceFNV();
+	Arr256x64i32 h_arr(*h_mat);
+	h_arr.reduceFNV();
 	for (int k = 256; k > 1; k = k / 2) {
 		for (int j = 0; j < k / 2; j++) {
 			for (int i = 0; i < 64; i++) {
-				arr[j][i] = FNV(arr[j][i], arr[j + k / 2][i]);
+				h_arr.d[j][i] = FNV(h_arr.d[j][i], h_arr.d[j + k / 2][i]);
 			}
 		}
 	}
+	)cpu_memory_pool->mem_free(h_mat);
+
+	//arr.reduceFNV();
+	//for (int k = 256; k > 1; k = k / 2) {
+	//	for (int j = 0; j < k / 2; j++) {
+	//		for (int i = 0; i < 64; i++) {
+	//			arr[j][i] = FNV(arr[j][i], arr[j + k / 2][i]);
+	//		}
+	//	}
+	//}
 
 	rhash_sha3_256_init(ctx);
 	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-	rhash_sha3_update(ctx, (uint8_t*)(arr[0]), 256);
+	//rhash_sha3_update(ctx, (uint8_t*)(arr[0]), 256);
+	rhash_sha3_update(ctx, (uint8_t*)(h_arr.d[0]), 256);
 	rhash_sha3_final(ctx, result);
 	//delete mat;
 	//delete[] res;
