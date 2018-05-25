@@ -338,8 +338,35 @@ void iter(
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
 
+	// afVR(ab
+	uint8_t t_msg[8] = { ' ', 'a', 'f', 'V', 'R', '(', 'a', 'b' };
+
+	uint8_t sequence1[32];
+	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
+	rhash_sha3_256_init(ctx);
+	rhash_sha3_update(ctx, t_msg, 8);
+	rhash_sha3_final(ctx, sequence1);
+
+	printf("1: ");
+	for (int j = 0; j < 32; j++)
+	{
+		printf("%02x", sequence1[j]);
+	}
+	printf("\n");
+
+	uint8_t sequence2[32];
+	runBenchmarks(t_msg, sequence2, threadID, 8, 1);
+
+	printf("2: ");
+	for (int j = 0; j < 32; j++)
+	{
+		printf("%02x", sequence2[j]);
+	}
+	printf("\n");
+
 	uint8_t sequence[128];
 	runBenchmarks(msg, sequence, threadID, 8, 4);
+
 
 	pthread_t matrixMulThread[4];
 	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
@@ -354,18 +381,10 @@ void iter(
 
 		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 		uint8_t m_sequence[32];
-		// afVR(ab
-		uint8_t t_msg[8] = {' ', 'a', 'f', 'V', 'R', '(', 'a', 'b'};
 		rhash_sha3_256_init(ctx);
-		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
-		rhash_sha3_update(ctx, t_msg, 8);
+		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
+		//rhash_sha3_update(ctx, t_msg, 8);
 		rhash_sha3_final(ctx, m_sequence);
-
-		for (int j = 0; j < 32; j++)
-		{
-			printf("%02x", m_sequence[j]);
-		}
-		printf("\n");
 
 		for (int j = 0; j < 32; j++)
 		{
