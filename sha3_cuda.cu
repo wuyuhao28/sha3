@@ -361,9 +361,10 @@ __device__ void keccak(const unsigned char *message, int message_len, unsigned c
     memcpy(output, state, output_len);
 }
 
-__global__ void benchmark(const unsigned char *messages, unsigned char *output, int messagesNum)
+__global__ void benchmark(const unsigned char *messages, unsigned char *output, int messagesNum, int str_len)
 {
-	const int str_len = 6;
+	//const int str_len = 6;
+	//const int str_len = 8;
 	const int output_len = 32;
 	int tid = threadIdx.x + (blockIdx.x * blockDim.x);
 	int num_threads = blockDim.x * gridDim.x;
@@ -513,7 +514,7 @@ void runBenchmarks(unsigned char *h_messages, uint8_t *sequence, int deviceID, i
 		//h_to_d_time += elapsed_time;
 
 		//cudaEventRecord(start, 0);
-		benchmark << <256, 256 >> >(d_messages, d_output, m_messageNum);
+		benchmark << <256, 256 >> >(d_messages, d_output, m_messageNum, m_strLength);
 		cudaDeviceSynchronize();
 		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 		{
