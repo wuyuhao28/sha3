@@ -517,7 +517,7 @@ void runBenchmarks(char *file_name)
 		h_to_d_time += elapsed_time;
 
 		cudaEventRecord(start, 0);
-		benchmark<<<number_blocks, 1024>>>(d_messages, d_output, num_messages);
+		benchmark<<<256, 256>>>(d_messages, d_output, num_messages);
 		cudaDeviceSynchronize();
 		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 		{
