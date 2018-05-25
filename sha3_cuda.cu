@@ -544,11 +544,11 @@ void runBenchmarks(char *h_messages, uint8_t *sequence)
 	total_time = h_to_d_time + comp_time + d_to_h_time;
 	hashes_per_sec = num_messages / total_time;
 	
-	printf("Memory Transfer Time Host -> Device\t%0.3g sec\n", h_to_d_time);
-	printf("Computation Time\t\t\t%0.3g sec\n", comp_time);
-	printf("Memory Transfer Time Device -> Host\t%0.3g sec\n", d_to_h_time);
+	//printf("Memory Transfer Time Host -> Device\t%0.3g sec\n", h_to_d_time);
+	//printf("Computation Time\t\t\t%0.3g sec\n", comp_time);
+	//printf("Memory Transfer Time Device -> Host\t%0.3g sec\n", d_to_h_time);
 	printf("Total Time\t\t\t\t%0.3g sec\n", total_time);
-	printf("%d hashes/sec\n", hashes_per_sec);
+	//printf("%d hashes/sec\n", hashes_per_sec);
 	
 	/*for (int i = 0; i < 10; i++)
 	{
@@ -561,8 +561,8 @@ void runBenchmarks(char *h_messages, uint8_t *sequence)
 	}*/
 	
 	// Free arrays from memory
-    free(h_messages);
-	free(h_output);
+    //free(h_messages);
+	//free(h_output);
     cudaFree(d_messages);
 	cudaFree(d_output);
 }
