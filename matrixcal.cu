@@ -339,18 +339,20 @@ void iter(
 	Mat256x256i8 *mat = new Mat256x256i8;
 
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
-	uint8_t **sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
+	//uint8_t **sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
+	uint8_t sequence[128];
+	runBenchmarks((char *)msg,sequence);
 
 	pthread_t matrixMulThread[4];
 	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
 	for (int i = 0; i < 4; i++)
 	{
 		//uint8_t sequence[128];
-		sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 32);
-		memset(sequence[i], 0, sizeof(uint8_t) * 32);
-		rhash_sha3_256_init(ctx);
-		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
-		rhash_sha3_final(ctx, sequence[i]);
+		//sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 32);
+		//memset(sequence[i], 0, sizeof(uint8_t) * 32);
+		//rhash_sha3_256_init(ctx);
+		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
+		//rhash_sha3_final(ctx, sequence[i]);
 
 		matrixMulThreadArg[i].threadID = threadID;
 		//matrixMulThreadArg[i].k = i;
@@ -358,7 +360,8 @@ void iter(
 		//matrixMulThreadArg[i].len = len;
 		matrixMulThreadArg[i].res = &(res[i]);
 		matrixMulThreadArg[i].device_matList = device_matList;
-		matrixMulThreadArg[i].sequence = sequence[i];
+		//matrixMulThreadArg[i].sequence = sequence[i];
+		matrixMulThreadArg[i].sequence = sequence + i * 32;
 
 		if (pthread_create(&matrixMulThread[i], NULL, matrixMul_Thread, (void *)&matrixMulThreadArg[i]) != 0)
 		{
@@ -388,9 +391,11 @@ void iter(
 	Arr256x64i32 arr(*mat);
 	arr.reduceFNV();
 
-	rhash_sha3_256_init(ctx);
-	rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-	rhash_sha3_final(ctx, result);
+	runBenchmarks((char *)arr.d0RawPtr(), result);
+
+	//rhash_sha3_256_init(ctx);
+	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	//rhash_sha3_final(ctx, result);
 	delete mat;
 	delete[] res;
 	free(ctx);
