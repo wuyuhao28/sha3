@@ -338,8 +338,8 @@ void iter(
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
 
-	/*uint8_t sequence[128];
-	runBenchmarks(msg, sequence, threadID, 8, 4);*/
+	uint8_t sequence[128];
+	runBenchmarks(msg, sequence, threadID, 8, 4);
 
 	pthread_t matrixMulThread[4];
 	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
@@ -352,9 +352,6 @@ void iter(
 		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
 		//rhash_sha3_final(ctx, sequence[i]);
 
-		uint8_t sequence[32];
-		runBenchmarks(msg, sequence, threadID, 8, 1); 
-
 		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 		uint8_t m_sequence[32];
 		rhash_sha3_256_init(ctx);
@@ -362,7 +359,7 @@ void iter(
 		rhash_sha3_final(ctx, m_sequence);
 		for (int j = 0; j < 32; j++)
 		{
-			if (sequence[j] != m_sequence[j])
+			if (sequence[i * 32 + j] != m_sequence[j])
 			{
 				printf("runBenchmarks error.\n");
 			}
@@ -374,8 +371,8 @@ void iter(
 		//matrixMulThreadArg[i].len = len;
 		matrixMulThreadArg[i].res = &(res[i]);
 		matrixMulThreadArg[i].device_matList = device_matList;
-		//matrixMulThreadArg[i].sequence = sequence + i * 32;
-		matrixMulThreadArg[i].sequence = sequence;
+		//matrixMulThreadArg[i].sequence = sequence[i];
+		matrixMulThreadArg[i].sequence = sequence + i * 32;
 
 		if (pthread_create(&matrixMulThread[i], NULL, matrixMul_Thread, (void *)&matrixMulThreadArg[i]) != 0)
 		{
