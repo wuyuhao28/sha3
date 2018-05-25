@@ -4,6 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "device_functions.h"
+#include "memorypoolmanager.h"
 
 #include <stdlib.h>
 #include <stdio.h>

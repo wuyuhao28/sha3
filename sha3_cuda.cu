@@ -12,18 +12,18 @@ char *read_in_messages();
 int gcd(int a, int b);
 
 // updated message the gpu_init() function
-int clock_speed;
-int number_multi_processors;
-int number_blocks;
-int number_threads;
-int max_threads_per_mp;
+//int clock_speed;
+//int number_multi_processors;
+//int number_blocks;
+//int number_threads;
+//int max_threads_per_mp;
 
 int num_messages = 4;
 const int digest_size = 256;
 const int digest_size_bytes = digest_size / 8;
 const size_t str_length = 8;	//change for different sizes
 
-cudaEvent_t start, stop;
+//cudaEvent_t start, stop;
 
 #define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
 
@@ -402,30 +402,30 @@ __global__ void benchmark(const char *messages, unsigned char *output, int num_m
 /**
  * Initializes the global variables by calling the cudaGetDeviceProperties().
  */
-void gpu_init()
-{
-    cudaDeviceProp device_prop;
-    int device_count, block_size;
-
-    cudaGetDeviceCount(&device_count);
-    //if (device_count != 1) {
-    //    printf("Only want to test a single GPU, exiting...\n");
-    //    exit(EXIT_FAILURE);
-    //}
-
-    if (cudaGetDeviceProperties(&device_prop, 0) != cudaSuccess) {
-        printf("Problem getting properties for device, exiting...\n");
-        exit(EXIT_FAILURE);
-    } 
-
-    number_threads = device_prop.maxThreadsPerBlock;
-    number_multi_processors = device_prop.multiProcessorCount;
-    max_threads_per_mp = device_prop.maxThreadsPerMultiProcessor;
-    block_size = (max_threads_per_mp / gcd(max_threads_per_mp, number_threads));
-    number_threads = max_threads_per_mp / block_size;
-    number_blocks = block_size * number_multi_processors;
-    clock_speed = (int) (device_prop.memoryClockRate * 1000 * 1000);    // convert from GHz to hertz
-}
+//void gpu_init()
+//{
+//    cudaDeviceProp device_prop;
+//    int device_count, block_size;
+//
+//    cudaGetDeviceCount(&device_count);
+//    //if (device_count != 1) {
+//    //    printf("Only want to test a single GPU, exiting...\n");
+//    //    exit(EXIT_FAILURE);
+//    //}
+//
+//    if (cudaGetDeviceProperties(&device_prop, 0) != cudaSuccess) {
+//        printf("Problem getting properties for device, exiting...\n");
+//        exit(EXIT_FAILURE);
+//    } 
+//
+//    number_threads = device_prop.maxThreadsPerBlock;
+//    number_multi_processors = device_prop.multiProcessorCount;
+//    max_threads_per_mp = device_prop.maxThreadsPerMultiProcessor;
+//    block_size = (max_threads_per_mp / gcd(max_threads_per_mp, number_threads));
+//    number_threads = max_threads_per_mp / block_size;
+//    number_blocks = block_size * number_multi_processors;
+//    clock_speed = (int) (device_prop.memoryClockRate * 1000 * 1000);    // convert from GHz to hertz
+//}
 
 int gcd(int a, int b) {
     return (a == 0) ? b : gcd(b % a, a);
@@ -473,12 +473,12 @@ void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
 	cudaStatus = cudaSetDevice(deviceID);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	float h_to_d_time = 0.0;
-	float comp_time = 0.0;
-	float d_to_h_time = 0.0;
-	float total_time = 0.0;
-    float elapsed_time;
-	int hashes_per_sec;
+	//float h_to_d_time = 0.0;
+	//float comp_time = 0.0;
+	//float d_to_h_time = 0.0;
+	//float total_time = 0.0;
+ //   float elapsed_time;
+	//int hashes_per_sec;
 	
 	size_t array_size = sizeof(char) * str_length * num_messages;
 	size_t output_size = digest_size_bytes * num_messages;
@@ -493,61 +493,63 @@ void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
 	unsigned char *d_output;
 	
     // Allocate device arrays
-    cudaMalloc((void**) &d_messages, array_size);
-	cudaMalloc((void**) &d_output, output_size);
+   // cudaMalloc((void**) &d_messages, array_size);
+	//cudaMalloc((void**) &d_output, output_size);
+	d_messages = (char *)memory_pool->CMalloc(deviceID, array_size);
+	d_output = (unsigned char *)memory_pool->CMalloc(deviceID, output_size);
 	
 	int number_runs = 25;
     // Copy Strings from host to device arrays
     for (int j = 0; j < number_runs; j++)
 	{
-		cudaEventRecord(start, 0);
+		//cudaEventRecord(start, 0);
 		cudaStatus = cudaMemcpy(d_messages, h_messages, array_size, cudaMemcpyHostToDevice);
 		if (cudaStatus != cudaSuccess)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-		cudaEventRecord(stop, 0);
-		cudaEventSynchronize(start);
-		cudaEventSynchronize(stop);
-		cudaEventElapsedTime(&elapsed_time, start, stop);
-		h_to_d_time += elapsed_time;
+		//cudaEventRecord(stop, 0);
+		//cudaEventSynchronize(start);
+		//cudaEventSynchronize(stop);
+		//cudaEventElapsedTime(&elapsed_time, start, stop);
+		//h_to_d_time += elapsed_time;
 
-		cudaEventRecord(start, 0);
+		//cudaEventRecord(start, 0);
 		benchmark<<<256, 256>>>(d_messages, d_output, num_messages);
 		cudaDeviceSynchronize();
 		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 		{
 			printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
 		}
-		cudaEventRecord(stop, 0);
-        cudaEventSynchronize(start);
-        cudaEventSynchronize(stop);
-        cudaEventElapsedTime(&elapsed_time, start, stop);
-        comp_time += elapsed_time;
+		//cudaEventRecord(stop, 0);
+       // cudaEventSynchronize(start);
+        //cudaEventSynchronize(stop);
+        //cudaEventElapsedTime(&elapsed_time, start, stop);
+        //comp_time += elapsed_time;
 		
 	
 		// Copy hashes from device to host arrays
-		cudaEventRecord(start, 0);
+		//cudaEventRecord(start, 0);
 		//cudaStatus = cudaMemcpy(h_output, d_output, array_size, cudaMemcpyDeviceToHost);
 		cudaStatus = cudaMemcpy(sequence, d_output, array_size, cudaMemcpyDeviceToHost);
 		if (cudaStatus != cudaSuccess)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-		cudaEventRecord(stop, 0);
-		cudaEventSynchronize(start);
-		cudaEventSynchronize(stop);
-		cudaEventElapsedTime(&elapsed_time, start, stop);
-		d_to_h_time += elapsed_time;
+		//cudaEventRecord(stop, 0);
+		//cudaEventSynchronize(start);
+		//cudaEventSynchronize(stop);
+		//cudaEventElapsedTime(&elapsed_time, start, stop);
+		//d_to_h_time += elapsed_time;
 	}
 	
 	// averages the time over the number of runs and converts it from ms to sec
-	h_to_d_time /= (number_runs * 1000);
-	comp_time /= (number_runs * 1000);
-	d_to_h_time /= (number_runs * 1000);
-	total_time = h_to_d_time + comp_time + d_to_h_time;
-	hashes_per_sec = num_messages / total_time;
+	//h_to_d_time /= (number_runs * 1000);
+	//comp_time /= (number_runs * 1000);
+	//d_to_h_time /= (number_runs * 1000);
+	//total_time = h_to_d_time + comp_time + d_to_h_time;
+	//hashes_per_sec = num_messages / total_time;
 	
 	//printf("Memory Transfer Time Host -> Device\t%0.3g sec\n", h_to_d_time);
 	//printf("Computation Time\t\t\t%0.3g sec\n", comp_time);
 	//printf("Memory Transfer Time Device -> Host\t%0.3g sec\n", d_to_h_time);
-	printf("Total Time\t\t\t\t%0.3g sec\n", total_time);
+	//printf("Total Time\t\t\t\t%0.3g sec\n", total_time);
 	//printf("%d hashes/sec\n", hashes_per_sec);
 	
 	/*for (int i = 0; i < 10; i++)
@@ -563,8 +565,10 @@ void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
 	// Free arrays from memory
     //free(h_messages);
 	//free(h_output);
-    cudaFree(d_messages);
-	cudaFree(d_output);
+    //cudaFree(d_messages);
+	//cudaFree(d_output);
+	memory_pool->CFree(deviceID, d_messages);
+	memory_pool->CFree(deviceID, d_output);
 }
 
 //void find_message()
