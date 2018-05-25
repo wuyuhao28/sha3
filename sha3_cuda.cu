@@ -330,7 +330,7 @@ __device__ void keccak256(uint64_t state[25])
     }
 }
 
-__device__ void keccak(const char *message, int message_len, unsigned char *output, int output_len)
+__device__ void keccak(const unsigned char *message, int message_len, unsigned char *output, int output_len)
 {
     uint64_t state[25];    
     uint8_t temp[144];
@@ -361,7 +361,7 @@ __device__ void keccak(const char *message, int message_len, unsigned char *outp
     memcpy(output, state, output_len);
 }
 
-__global__ void benchmark(const char *messages, unsigned char *output, int messagesNum)
+__global__ void benchmark(const unsigned char *messages, unsigned char *output, int messagesNum)
 {
 	const int str_len = 6;
 	const int output_len = 32;
@@ -467,7 +467,7 @@ int gcd(int a, int b) {
 /*
  * Runs the benchmark for the SHA-3 GPU versions.
  */
-void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID, int m_strLength, int m_messageNum)
+void runBenchmarks(unsigned char *h_messages, uint8_t *sequence, int deviceID, int m_strLength, int m_messageNum)
 {
 	cudaError_t cudaStatus;
 	cudaStatus = cudaSetDevice(deviceID);
@@ -489,13 +489,13 @@ void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID, int m_strL
 
 	//unsigned char *h_output = (unsigned char *) malloc(output_size);
 
-	char *d_messages;
+	unsigned char *d_messages;
 	unsigned char *d_output;
 	
     // Allocate device arrays
    // cudaMalloc((void**) &d_messages, array_size);
 	//cudaMalloc((void**) &d_output, output_size);
-	d_messages = (char *)memory_pool->CMalloc(deviceID, array_size);
+	d_messages = (unsigned char *)memory_pool->CMalloc(deviceID, array_size);
 	d_output = (unsigned char *)memory_pool->CMalloc(deviceID, output_size);
 	
 	int number_runs = 25;
