@@ -341,7 +341,7 @@ void iter(
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 	//uint8_t **sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
 	uint8_t sequence[128];
-	runBenchmarks((char *)msg,sequence);
+	runBenchmarks((char *)msg, sequence, threadID);
 
 	pthread_t matrixMulThread[4];
 	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
@@ -391,7 +391,7 @@ void iter(
 	Arr256x64i32 arr(*mat);
 	arr.reduceFNV();
 
-	runBenchmarks((char *)arr.d0RawPtr(), result);
+	runBenchmarks((char *)arr.d0RawPtr(), result, threadID);
 
 	//rhash_sha3_256_init(ctx);
 	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
