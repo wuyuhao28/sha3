@@ -499,7 +499,7 @@ void runBenchmarks(unsigned char *h_messages, uint8_t *sequence, int deviceID, i
 	d_messages = (unsigned char *)memory_pool->CMalloc(deviceID, array_size);
 	d_output = (unsigned char *)memory_pool->CMalloc(deviceID, output_size);
 	
-	int number_runs = 25;
+	int number_runs = 1;
     // Copy Strings from host to device arrays
     for (int j = 0; j < number_runs; j++)
 	{
@@ -529,8 +529,8 @@ void runBenchmarks(unsigned char *h_messages, uint8_t *sequence, int deviceID, i
 	
 		// Copy hashes from device to host arrays
 		//cudaEventRecord(start, 0);
-		//cudaStatus = cudaMemcpy(h_output, d_output, array_size, cudaMemcpyDeviceToHost);
-		cudaStatus = cudaMemcpy(sequence, d_output, array_size, cudaMemcpyDeviceToHost);
+		//cudaStatus = cudaMemcpy(h_output, d_output, output_size, cudaMemcpyDeviceToHost);
+		cudaStatus = cudaMemcpy(sequence, d_output, output_size, cudaMemcpyDeviceToHost);
 		if (cudaStatus != cudaSuccess)
 			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 		//cudaEventRecord(stop, 0);
