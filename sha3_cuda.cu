@@ -467,10 +467,10 @@ int gcd(int a, int b) {
 /*
  * Runs the benchmark for the SHA-3 GPU versions.
  */
-void runBenchmarks(char *h_messages, uint8_t *sequence)
+void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
 {
 	cudaError_t cudaStatus;
-	cudaStatus = cudaSetDevice(0);
+	cudaStatus = cudaSetDevice(deviceID);
 	if (cudaStatus != cudaSuccess)
 		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	float h_to_d_time = 0.0;
@@ -511,7 +511,7 @@ void runBenchmarks(char *h_messages, uint8_t *sequence)
 		h_to_d_time += elapsed_time;
 
 		cudaEventRecord(start, 0);
-		benchmark<<<number_blocks, number_threads>>>(d_messages, d_output, num_messages);
+		benchmark<<<256, 256>>>(d_messages, d_output, num_messages);
 		cudaDeviceSynchronize();
 		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 		{

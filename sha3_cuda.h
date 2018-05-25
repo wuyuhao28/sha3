@@ -10,6 +10,6 @@
 #include <stdint.h>
 #include <string.h>
 
-void runBenchmarks(char *h_messages, uint8_t *sequence);
+void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID);
 
 #endif
