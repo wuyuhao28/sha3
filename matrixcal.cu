@@ -346,8 +346,8 @@ void iter(
 	for (int i = 0; i < 4; i++)
 	{
 		//uint8_t sequence[128];
-		sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 128);
-		memset(sequence[i], 0, sizeof(uint8_t) * 128);
+		sequence[i] = (uint8_t *)malloc(sizeof(uint8_t) * 32);
+		memset(sequence[i], 0, sizeof(uint8_t) * 32);
 		rhash_sha3_256_init(ctx);
 		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
 		rhash_sha3_final(ctx, sequence[i]);
