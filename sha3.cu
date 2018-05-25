@@ -477,7 +477,12 @@ char *read_in_messages(char *file_name)
  */
 void runBenchmarks(char *file_name)
 {
+	cudaError_t cudaStatus;
 	cudaSetDevice(0);
+	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+	{
+		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
+	}
 	float h_to_d_time = 0.0;
 	float comp_time = 0.0;
 	float d_to_h_time = 0.0;
@@ -518,6 +523,10 @@ void runBenchmarks(char *file_name)
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&elapsed_time, start, stop);
         comp_time += elapsed_time;
+		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+		{
+			printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
+		}
 	
 		// Copy hashes from device to host arrays
 		cudaEventRecord(start, 0);
@@ -527,6 +536,11 @@ void runBenchmarks(char *file_name)
 		cudaEventSynchronize(stop);
 		cudaEventElapsedTime(&elapsed_time, start, stop);
 		d_to_h_time += elapsed_time;
+	}
+
+	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+	{
+		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
 	}
 	
 	// averages the time over the number of runs and converts it from ms to sec
@@ -540,7 +554,7 @@ void runBenchmarks(char *file_name)
 	printf("Computation Time\temp\temp\temp%0.3g sec\n", comp_time);
 	printf("Memory Transfer Time Device -> Host\temp%0.3g sec\n", d_to_h_time);
 	printf("Total Time\temp\temp\temp\temp%0.3g sec\n", total_time);
-	printf("%lu hashes/sec\n", hashes_per_sec);
+	printf("%d hashes/sec\n", hashes_per_sec);
 	
 	for (int i = 0; i < 10; i++)
 	{
@@ -653,7 +667,7 @@ int main(int argc, char **argv)
     cudaEventCreate(&stop);
 	
 	runBenchmarks(file_name);
-	find_message();
+	//find_message();
 	
 	cudaEventDestroy(start);
     cudaEventDestroy(stop);
