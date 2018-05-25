@@ -478,11 +478,9 @@ char *read_in_messages(char *file_name)
 void runBenchmarks(char *file_name)
 {
 	cudaError_t cudaStatus;
-	cudaSetDevice(0);
-	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-	{
-		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-	}
+	cudaStatus = cudaSetDevice(0);
+	if (cudaStatus != cudaSuccess)
+		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 	float h_to_d_time = 0.0;
 	float comp_time = 0.0;
 	float d_to_h_time = 0.0;
@@ -509,7 +507,9 @@ void runBenchmarks(char *file_name)
     for (int j = 0; j < number_runs; j++)
 	{
 		cudaEventRecord(start, 0);
-		cudaMemcpy(d_messages, h_messages, array_size, cudaMemcpyHostToDevice);
+		cudaStatus = cudaMemcpy(d_messages, h_messages, array_size, cudaMemcpyHostToDevice);
+		if (cudaStatus != cudaSuccess)
+			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 		cudaEventRecord(stop, 0);
 		cudaEventSynchronize(start);
 		cudaEventSynchronize(stop);
@@ -518,29 +518,28 @@ void runBenchmarks(char *file_name)
 
 		cudaEventRecord(start, 0);
 		benchmark<<<number_blocks, number_threads>>>(d_messages, d_output, num_messages);
+		cudaDeviceSynchronize();
+		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
+		{
+			printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
+		}
 		cudaEventRecord(stop, 0);
         cudaEventSynchronize(start);
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&elapsed_time, start, stop);
         comp_time += elapsed_time;
-		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-		{
-			printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
-		}
+		
 	
 		// Copy hashes from device to host arrays
 		cudaEventRecord(start, 0);
-		cudaMemcpy(h_output, d_output, array_size, cudaMemcpyDeviceToHost);
+		cudaStatus = cudaMemcpy(h_output, d_output, array_size, cudaMemcpyDeviceToHost);
+		if (cudaStatus != cudaSuccess)
+			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
 		cudaEventRecord(stop, 0);
 		cudaEventSynchronize(start);
 		cudaEventSynchronize(stop);
 		cudaEventElapsedTime(&elapsed_time, start, stop);
 		d_to_h_time += elapsed_time;
-	}
-
-	if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
-	{
-		printf("[%s:%d]|Error|Cuda kernel error: %s|%d\n", __FILE__, __LINE__, cudaGetErrorString(cudaStatus), cudaStatus);
 	}
 	
 	// averages the time over the number of runs and converts it from ms to sec
