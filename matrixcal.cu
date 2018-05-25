@@ -354,6 +354,19 @@ void iter(
 		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
 		//rhash_sha3_final(ctx, sequence[i]);
 
+		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
+		uint8_t m_sequence[32];
+		rhash_sha3_256_init(ctx);
+		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
+		rhash_sha3_final(ctx, m_sequence);
+		for (int j = 0; j < 32; j++)
+		{
+			if (sequence[i * 32 + j] != m_sequence[j])
+			{
+				printf("runBenchmarks error.\n");
+			}
+		}
+
 		matrixMulThreadArg[i].threadID = threadID;
 		//matrixMulThreadArg[i].k = i;
 		//matrixMulThreadArg[i].msg = msg;
