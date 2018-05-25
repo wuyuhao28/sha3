@@ -338,10 +338,10 @@ void iter(
 	Mat256x256i8 *res = new Mat256x256i8[4];
 	Mat256x256i8 *mat = new Mat256x256i8;
 
-	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
+	//sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
 	//uint8_t **sequence = (uint8_t **)malloc(sizeof(uint8_t *) * 4);
 	uint8_t sequence[128];
-	runBenchmarks((char *)msg, sequence, threadID);
+	runBenchmarks((char *)msg, sequence, threadID, 8, 4);
 
 	pthread_t matrixMulThread[4];
 	pstMatrixMulThreadArg matrixMulThreadArg = new stMatrixMulThreadArg[4]();
@@ -391,14 +391,14 @@ void iter(
 	Arr256x64i32 arr(*mat);
 	arr.reduceFNV();
 
-	runBenchmarks((char *)arr.d0RawPtr(), result, threadID);
+	runBenchmarks((char *)arr.d0RawPtr(), result, threadID, 64, 1);
 
 	//rhash_sha3_256_init(ctx);
 	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
 	//rhash_sha3_final(ctx, result);
 	delete mat;
 	delete[] res;
-	free(ctx);
+	//free(ctx);
 	/////////////////////////////////////////////////////////////////////////////////////////////
 }
 

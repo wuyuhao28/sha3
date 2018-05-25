@@ -11,6 +11,6 @@
 #include <stdint.h>
 #include <string.h>
 
-void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID);
+void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID, int m_strLength, int m_messageNum);
 
 #endif

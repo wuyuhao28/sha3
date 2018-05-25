@@ -361,14 +361,14 @@ __device__ void keccak(const char *message, int message_len, unsigned char *outp
     memcpy(output, state, output_len);
 }
 
-__global__ void benchmark(const char *messages, unsigned char *output, int num_messages)
+__global__ void benchmark(const char *messages, unsigned char *output, int messagesNum)
 {
 	const int str_len = 6;
 	const int output_len = 32;
 	int tid = threadIdx.x + (blockIdx.x * blockDim.x);
 	int num_threads = blockDim.x * gridDim.x;
 	
-	for (; tid < num_messages; tid += num_threads)
+	for (; tid < messagesNum; tid += num_threads)
 	{
 		keccak(&messages[tid * str_len], str_len, &output[tid * output_len], output_len);
 	}
@@ -467,7 +467,7 @@ int gcd(int a, int b) {
 /*
  * Runs the benchmark for the SHA-3 GPU versions.
  */
-void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
+void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID, int m_strLength, int m_messageNum)
 {
 	cudaError_t cudaStatus;
 	cudaStatus = cudaSetDevice(deviceID);
@@ -480,8 +480,8 @@ void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
  //   float elapsed_time;
 	//int hashes_per_sec;
 	
-	size_t array_size = sizeof(char) * str_length * num_messages;
-	size_t output_size = digest_size_bytes * num_messages;
+	size_t array_size = sizeof(char) * m_strLength * m_messageNum;
+	size_t output_size = digest_size_bytes * m_messageNum;
 	
 	// Allocate host arrays
 
@@ -513,7 +513,7 @@ void runBenchmarks(char *h_messages, uint8_t *sequence, int deviceID)
 		//h_to_d_time += elapsed_time;
 
 		//cudaEventRecord(start, 0);
-		benchmark<<<256, 256>>>(d_messages, d_output, num_messages);
+		benchmark << <256, 256 >> >(d_messages, d_output, m_messageNum);
 		cudaDeviceSynchronize();
 		if ((cudaStatus = cudaGetLastError()) != cudaSuccess)
 		{
