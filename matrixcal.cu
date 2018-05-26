@@ -339,7 +339,7 @@ void iter(
 	Mat256x256i8 *mat = new Mat256x256i8;
 
 	// afVR(ab
-	uint8_t t_msg[8] = { ' ', 'a', 'f', 'V', 'R', '(', 'a', 'b' };
+	/*uint8_t t_msg[8] = { ' ', 'a', 'f', 'V', 'R', '(', 'a', 'b' };
 
 	uint8_t sequence1[32];
 	sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
@@ -362,7 +362,7 @@ void iter(
 	{
 		printf("%02x", sequence2[j]);
 	}
-	printf("\n");
+	printf("\n");*/
 
 	uint8_t sequence[128];
 	runBenchmarks(msg, sequence, threadID, 8, 4);
@@ -379,20 +379,20 @@ void iter(
 		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
 		//rhash_sha3_final(ctx, sequence[i]);
 
-		sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
-		uint8_t m_sequence[32];
-		rhash_sha3_256_init(ctx);
-		rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
-		//rhash_sha3_update(ctx, t_msg, 8);
-		rhash_sha3_final(ctx, m_sequence);
+		//sha3_ctx *ctx = (sha3_ctx*)calloc(1, sizeof(*ctx));
+		//uint8_t m_sequence[32];
+		//rhash_sha3_256_init(ctx);
+		//rhash_sha3_update(ctx, msg + (len * i / 4), len / 4);
+		////rhash_sha3_update(ctx, t_msg, 8);
+		//rhash_sha3_final(ctx, m_sequence);
 
-		for (int j = 0; j < 32; j++)
-		{
-			if (sequence[i * 32 + j] != m_sequence[j])
-			{
-				printf("runBenchmarks error.\n");
-			}
-		}
+		//for (int j = 0; j < 32; j++)
+		//{
+		//	if (sequence[i * 32 + j] != m_sequence[j])
+		//	{
+		//		printf("runBenchmarks error.\n");
+		//	}
+		//}
 
 		matrixMulThreadArg[i].threadID = threadID;
 		//matrixMulThreadArg[i].k = i;
@@ -425,13 +425,15 @@ void iter(
 	end_t = GetMillsec();
 	printf("iter multi porcess time: %lf\n", end_t - start_t);
 
-	mat->add(res[0], res[1]);
-	mat->add(*mat, res[2]);
-	mat->add(*mat, res[3]);;
-	Arr256x64i32 arr(*mat);
-	arr.reduceFNV();
+	//mat->add(res[0], res[1]);
+	//mat->add(*mat, res[2]);
+	//mat->add(*mat, res[3]);
+	//Arr256x64i32 arr(*mat);
+	//Arr256x64i32 arr;
+	//arr.reduceFNV();
 
-	runBenchmarks(arr.d0RawPtr(), result, threadID, 64, 1);
+	//runBenchmarks(arr.d0RawPtr(), result, threadID, 64, 1);
+	runBenchmarks(sequence, result, threadID, 64, 1);
 
 	//rhash_sha3_256_init(ctx);
 	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
