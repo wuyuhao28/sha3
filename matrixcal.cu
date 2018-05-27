@@ -309,34 +309,34 @@ void iter(
 	cudaSetDevice(threadID);
 	int8_t* device_matList;
 	
-	double start_t, end_t;
-	//start_t = GetMillsec();
-	//add mutex?
-	if (memcmp(seed, g_seed, 32) == 0)
-	{
-		//printf("seed alread exist.\n");
-	}
-	else
-	{
-		printf("seed changed.\n");
-		Words32 extSeed = extSeedCreate(seed);
-		memset(matList_int8->matVec, 0, sizeof(Mat256x256i8) * 256);
-		for (int i = 0; i<256; i++) {
-			matList_int8->matVec[i].toIdentityMatrix();
-		}
-		matList_int8->init(extSeed);
-		memcpy(g_seed, seed, 32);
-		cudaStatus = cudaMemcpy(g_device_matList[threadID], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess)
-			printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
-	}
+	//double start_t, end_t;
+	////start_t = GetMillsec();
+	////add mutex?
+	//if (memcmp(seed, g_seed, 32) == 0)
+	//{
+	//	//printf("seed alread exist.\n");
+	//}
+	//else
+	//{
+	//	printf("seed changed.\n");
+	//	Words32 extSeed = extSeedCreate(seed);
+	//	memset(matList_int8->matVec, 0, sizeof(Mat256x256i8) * 256);
+	//	for (int i = 0; i<256; i++) {
+	//		matList_int8->matVec[i].toIdentityMatrix();
+	//	}
+	//	matList_int8->init(extSeed);
+	//	memcpy(g_seed, seed, 32);
+	//	cudaStatus = cudaMemcpy(g_device_matList[threadID], matList_int8->matVec, sizeof(int8_t) * 256 * 256 * 256, cudaMemcpyHostToDevice);
+	//	if (cudaStatus != cudaSuccess)
+	//		printf("[%s:%d]Cuda failed, error code:%d.\n", __FILE__, __LINE__, cudaStatus);
+	//}
 	device_matList = g_device_matList[threadID];
 
 	////////////////////////////////////////////////////////////////////////////////////
 	//multeThread process 
-	start_t = GetMillsec();
+	//start_t = GetMillsec();
 	Mat256x256i8 *res = new Mat256x256i8[4];
-	Mat256x256i8 *mat = new Mat256x256i8;
+	//Mat256x256i8 *mat = new Mat256x256i8;
 
 	// afVR(ab
 	/*uint8_t t_msg[8] = { ' ', 'a', 'f', 'V', 'R', '(', 'a', 'b' };
@@ -420,26 +420,25 @@ void iter(
 		//free(sequence[i]);
 	}
 	//free(sequence);
-	memory_pool->CFree(threadID, device_matList);
+	//memory_pool->CFree(threadID, device_matList);
 
-	end_t = GetMillsec();
-	printf("iter multi porcess time: %lf\n", end_t - start_t);
+	//end_t = GetMillsec();
+	//printf("iter multi porcess time: %lf\n", end_t - start_t);
 
 	//mat->add(res[0], res[1]);
 	//mat->add(*mat, res[2]);
 	//mat->add(*mat, res[3]);
 	//Arr256x64i32 arr(*mat);
-	//Arr256x64i32 arr;
 	//arr.reduceFNV();
 
 	//runBenchmarks(arr.d0RawPtr(), result, threadID, 64, 1);
-	runBenchmarks(sequence, result, threadID, 64, 1);
+	////runBenchmarks(sequence, result, threadID, 64, 1);
 
-	//rhash_sha3_256_init(ctx);
-	//rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
-	//rhash_sha3_final(ctx, result);
-	delete mat;
-	delete[] res;
+	////rhash_sha3_256_init(ctx);
+	////rhash_sha3_update(ctx, arr.d0RawPtr(), 256);
+	////rhash_sha3_final(ctx, result);
+	//delete mat;
+	//delete[] res;
 	//free(ctx);
 	/////////////////////////////////////////////////////////////////////////////////////////////
 }
