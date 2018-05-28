@@ -9,7 +9,6 @@
 #include "memorypool.h"
 #include "memorypoolmanager.h"
 #include "seed.h"
-#include "sha3_cuda.h"
 
 #include <cublas_v2.h> //cuda自带库函数
 //#include <cublas.h> 
@@ -20,6 +19,7 @@
 extern cublasHandle_t g_handle[6];
 extern int8_t* g_device_matList[6];
 extern uint8_t g_seed[32];
+extern cTaskQueue g_tskQueue;		//任务队列
 
 #define LOOP_COUNT		2
 #define SEQUENCE_COUNT	32

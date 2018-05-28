@@ -6,14 +6,15 @@
 #include <algorithm>
 #include <pthread.h>
 
-
 #include "matrixcal.h"
-
+#include "RequestQueue.h"
 
 AlgriMatList* matList_int8;
 int g_deviceNum;
 cublasHandle_t g_handle[6];
 int8_t* g_device_matList[6];
+
+cTaskQueue g_tskQueue;		//任务队列
 
 static uint8_t g_msg[32] = {
         0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
@@ -72,20 +73,19 @@ typedef struct st_calculateThreadArg{
 
 void* calculate_Thread(void *arg)
 {
-	pstCalculateThreadArg calculateThreadArg = (pstCalculateThreadArg)arg;
+	pTaskST tmpTask = g_tskQueue.OutQueue();
 
-	/*iter(calculateThreadArg->msg, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID,
-		calculateThreadArg->res, calculateThreadArg->mat, calculateThreadArg->ctx);*/
-
-	iter(calculateThreadArg->msg, calculateThreadArg->seed, calculateThreadArg->len, calculateThreadArg->result, calculateThreadArg->threadID);
-
-
-	for (int j = 0; j < 32; j++) {
-		if (calculateThreadArg->result[j] != g_results[j]) {
-			printf("Results does not match j : %d \n", j);
-			break;
+	if (tmpTask != NULL)
+	{
+		iter(tmpTask->msg, tmpTask->seed, tmpTask->len, tmpTask->result, tmpTask->threadID);
+		for (int j = 0; j < 32; j++) {
+			if (tmpTask->result[j] != g_results[j]) {
+				printf("Results does not match j : %d \n", j);
+				break;
+			}
 		}
 	}
+
 }
 
 
@@ -150,72 +150,40 @@ int main(void)
 
 
 	printf("\n\n Multi process in.\n");
-	/////////////////////////////////////////////////////////////////////////////////
-	//for (int i = 0; i < g_deviceNum; i++)
-	//{
-	//	res[i] = new Mat256x256i8[4];
-	//	mat[i] = new Mat256x256i8;
-	//	ctx[i] = (sha3_ctx*)malloc(sizeof(sha3_ctx));
-	//}
-
-	//Mat256x256i8 *res = new Mat256x256i8[4];
-	//Mat256x256i8 *mat = new Mat256x256i8;
-	//sha3_ctx *ctx = (sha3_ctx*)malloc(sizeof(*ctx));
-
-	start_t = GetMillsec();
-	while (1)
+	//
+	for (int i = 0; i < 500; i++)
 	{
+		pTaskST taskNode = (pTaskST)malloc(sizeof(TaskST));
+		taskNode->threadID = i;
+		taskNode->msg = g_msg;
+		taskNode->len = 32;
+		memset(taskNode->result, 0, sizeof(taskNode->result));
+		memcpy(taskNode->seed, g_seed, sizeof(g_seed));
+
+		g_tskQueue.InQueue(&taskNode);
+	}
+	/////////////////////////////////////////////////////////////////////////////////
 	pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * DEVICENUM);
 	int threadNum = DEVICENUM;
-	pstCalculateThreadArg calculateThreadArg = new stCalculateThreadArg[threadNum]();
 	for (int i = 0; i < threadNum; i++)
 	{
-		calculateThreadArg[i].threadID = i;
-		calculateThreadArg[i].msg = g_msg;
-		calculateThreadArg[i].len = 32;
-		memset(calculateThreadArg[i].result, 0, sizeof(calculateThreadArg[i].result));
-		memcpy(calculateThreadArg[i].seed, g_seed, sizeof(g_seed));
-
-		//calculateThreadArg[i].res = res[i];
-		//calculateThreadArg[i].mat = mat[i];
-		//calculateThreadArg[i].ctx = ctx[i];
-
-		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&calculateThreadArg[i]) != 0)
+		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, NULL) != 0)
 		{
 			printf("ERROR: calculateThread create failed.\n");
 			return -1;
 		}
 	}
 
-	for (int i = 0; i < threadNum; i++)
+
+	start_t = GetMillsec();
+	while (1)
 	{
-		if (pthread_join(calculateThread[i], NULL) != 0)
-		{
-			printf("ERROR: calculateThread join failed.\n");
-			return -1;
-		}
-	}
-
-	if (calculateThreadArg)
-		delete[] calculateThreadArg;
-
-	end_t = GetMillsec();
-	std::cout << "all time : "
-		<< end_t - start_t << "ms"
-		<< std::endl;
-
+		if (g_tskQueue.getsize() == 0)
+			break;
 		usleep(10000);
 	}
-
-	//for (int i = 0; i < g_deviceNum; i++)
-	//{
-	//	delete mat[i];
-	//	delete[] res[i];
-	//	free(ctx[i]);
-	//}
-	//delete[] mat;
-	//delete[] res;
-	//free(ctx);
+	end_t = GetMillsec();
+	printf("Task used time %lf\n", end_t - start_t);
 
 
 	delete matList_int8;
