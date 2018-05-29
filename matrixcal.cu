@@ -313,10 +313,11 @@ void iter(
 	//add mutex?
 	if (memcmp(seed, g_seed, 32) == 0)
 	{
-		printf("seed alread exist.\n");
+		//printf("seed alread exist.\n");
 	}
 	else
 	{
+		printf("seed change.\n");
 		Words32 extSeed = extSeedCreate(seed);
 		memset(matList_int8->matVec, 0, sizeof(Mat256x256i8) * 256);
 		for (int i = 0; i<256; i++) {
@@ -463,10 +464,9 @@ void iter(
 		free(sequence[i]);
 	}
 	free(sequence);
-	memory_pool->CFree(threadID, device_matList);
 
 	end_t = GetMillsec();
-	printf("iter multi porcess time: %lf\n", end_t - start_t);
+	printf("threadID: %d , iter multi porcess time: %lf\n", threadID, end_t - start_t);
 
 	mat->add(res[0], res[1]);
 	mat->add(*mat, res[2]);

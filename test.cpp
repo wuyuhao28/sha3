@@ -15,6 +15,7 @@ cublasHandle_t g_handle[6];
 int8_t* g_device_matList[6];
 
 cTaskQueue g_tskQueue;		//任务队列
+#define TASK_NUM	500
 
 static uint8_t g_msg[32] = {
         0xd0, 0xda, 0xd7, 0x3f, 0xb2, 0xda, 0xbf, 0x33,
@@ -73,18 +74,28 @@ typedef struct st_calculateThreadArg{
 
 void* calculate_Thread(void *arg)
 {
-	pTaskST tmpTask = g_tskQueue.OutQueue();
-
-	if (tmpTask != NULL)
+	//int threadID = *(int*)arg;
+	while (1)
 	{
-		iter(tmpTask->msg, tmpTask->seed, tmpTask->len, tmpTask->result, tmpTask->threadID);
-		for (int j = 0; j < 32; j++) {
-			if (tmpTask->result[j] != g_results[j]) {
-				printf("Results does not match j : %d \n", j);
-				break;
-			}
+		pTaskST tmpTask = g_tskQueue.OutQueue();
+		//if (tmpTask == NULL)
+		//{
+		//	printf("threadID: %d task is NULL!\n", threadID);
+		//}
+		if (tmpTask != NULL)
+		{
+			iter(tmpTask->msg, tmpTask->seed, tmpTask->len, tmpTask->result, tmpTask->threadID);
+			/*for (int j = 0; j < 32; j++) {
+				if (tmpTask->result[j] != g_results[j]) {
+					printf("Results does not match j : %d \n", j);
+					break;
+				}
+			}*/
+			free(tmpTask);
 		}
+		//usleep(10);
 	}
+	
 
 }
 
@@ -151,22 +162,23 @@ int main(void)
 
 	printf("\n\n Multi process in.\n");
 	//
-	for (int i = 0; i < 500; i++)
+	for (int i = 0; i < TASK_NUM; i++)
 	{
 		pTaskST taskNode = (pTaskST)malloc(sizeof(TaskST));
-		taskNode->threadID = i;
 		taskNode->msg = g_msg;
 		taskNode->len = 32;
+		taskNode->threadID = i % DEVICENUM;
 		memset(taskNode->result, 0, sizeof(taskNode->result));
 		memcpy(taskNode->seed, g_seed, sizeof(g_seed));
-
-		g_tskQueue.InQueue(&taskNode);
+		taskNode->pNext = NULL;
+		g_tskQueue.InQueue(taskNode);
 	}
 	/////////////////////////////////////////////////////////////////////////////////
 	pthread_t *calculateThread = (pthread_t *)malloc(sizeof(pthread_t) * DEVICENUM);
 	int threadNum = DEVICENUM;
 	for (int i = 0; i < threadNum; i++)
 	{
+		//int threadID = i;
 		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, NULL) != 0)
 		{
 			printf("ERROR: calculateThread create failed.\n");
@@ -183,9 +195,9 @@ int main(void)
 		usleep(10000);
 	}
 	end_t = GetMillsec();
-	printf("Task used time %lf\n", end_t - start_t);
+	printf("All task used time %lf\n", end_t - start_t);
 
-
+	sleep(10);
 	delete matList_int8;
 	for (int i = 0; i < DEVICENUM; i++)
 	{
