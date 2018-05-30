@@ -17,10 +17,13 @@
 #include <time.h>
 #include <stdio.h>
 
+#define DEVICENUM		6
+#define DEVICEMEMORY		(1024*1024*1024)			 //1G
+
 extern cublasHandle_t g_handle[6];
 extern int8_t* g_device_matList[6];
 extern uint8_t g_seed[32];
-extern cTaskQueue g_tskQueue;		//任务队列
+extern cTaskQueue g_tskQueue[DEVICENUM];		//任务队列
 
 #define LOOP_COUNT		2
 #define SEQUENCE_COUNT	32
@@ -28,8 +31,7 @@ extern cTaskQueue g_tskQueue;		//任务队列
 #define BLOCK_SIZE		256
 #define THREAD_SIZE		256
 
-#define DEVICENUM		6
-#define DEVICEMEMORY		(1024*1024*1024)			 //1G
+
 
 cudaError_t matrixMul(Mat256x256i8& sourceMatrix, const Mat256x256i8* tmpMatrix, const AlgriMatList* matList_int8, uint8_t *sequence, int8_t* threadID);
 

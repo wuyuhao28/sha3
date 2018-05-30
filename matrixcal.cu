@@ -304,7 +304,7 @@ void iter(
 	uint32_t threadID){
 	//Mat256x256i8 *res, Mat256x256i8 *mat, sha3_ctx *ctx) {
 	cudaError_t cudaStatus;
-	memory_pool->inital(DEVICENUM, DEVICEMEMORY);
+	//memory_pool->inital(DEVICENUM, DEVICEMEMORY);
 	cudaSetDevice(threadID);
 	int8_t* device_matList;
 	
