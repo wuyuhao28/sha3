@@ -107,6 +107,7 @@ int get_hash(uint8_t msgs[32], uint8_t seeds[32],uint8_t ret[32],uint32_t *devic
 //   if(deviceid<7){
 //       return call_hash(msg,seed,ret,seedCache[deviceid],deviceid);
 //   }
+	printf("deviceid: %d\n", deviceid);
   	tag_stTaskST* taskNode = (tag_stTaskST*)malloc(sizeof(TaskST));
     // taskNode->msg = g_msg;
     // memcpy(taskNode->msg, &msgs, 8);
@@ -116,6 +117,7 @@ int get_hash(uint8_t msgs[32], uint8_t seeds[32],uint8_t ret[32],uint32_t *devic
     memset(taskNode->result, 0, sizeof(taskNode->result));
     memcpy(taskNode->seed, seeds,sizeof(g_seed));
     taskNode->pNext = NULL;
+	printf("before InQueue test\n");
     g_tskQueue[deviceid % DEVICENUM].InQueue(taskNode);
 	//g_tskQueue[deviceid % DEVICENUM].Push(taskNode);
 	//test.Push(taskNode);
