@@ -47,7 +47,7 @@ pTaskST cTaskQueue::OutQueue()
 
 	pthread_mutex_lock(&mutex);
 
-	if (m_pHeader)
+	if (m_pHeader != NULL)
 	{
 		pNewNode = m_pHeader;
 		m_pHeader = m_pHeader->pNext;
