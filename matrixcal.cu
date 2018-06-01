@@ -540,6 +540,7 @@ void* calculate_Thread(void *arg)
 		//tmpTask=g_tskQueue[threadID].Pop();
 		if (tmpTask != NULL)
 		{
+			printf("tmpTask in.\n");
 			//iter(tmpTask->msg, tmpTask->seed, tmpTask->len, tmpTask->result, tmpTask->threadID);
 			uint8_t* seed = tmpTask->seed;
 			uint8_t *msg = tmpTask->msg; 
@@ -639,7 +640,7 @@ void* calculate_Thread(void *arg)
 			// 		break;
 			// 	}
 			// }
-			free(tmpTask);
+			//free(tmpTask);
 		}
 		//usleep(1);
 	}
