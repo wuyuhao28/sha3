@@ -59,9 +59,9 @@ LDFLAGS   =
 
 # The pre-processor and compiler options.
 # Users can override those variables from the command line.
-CFLAGS  = -O0 -m64 
+CFLAGS  = -O3 -m64 -g -std=c++11
 #CXXFLAGS= -g -std=c++0x 
-CXXFLAGS= -O0 -m64 
+CXXFLAGS= -O3 -m64 -g -std=c++11
 
 # The executable file name.
 # If not specified, current directory name or `a.out' will be used.
@@ -86,7 +86,7 @@ CC     = g++ -g
 CXX    = g++ -g
 
 #The CUDA program compiler.
-NVCC = $(CUDA)/bin/nvcc -g
+NVCC = $(CUDA)/bin/nvcc  -g
 
 # Un-comment the following line to compile C programs as C++ ones.
 #CC     = $(CXX)
@@ -134,7 +134,7 @@ DEPEND      = $(CC)  $(DEP_OPT)  $(MY_CFLAGS) $(CFLAGS) $(CPPFLAGS)
 DEPEND.d    = $(subst -g ,,$(DEPEND))
 COMPILE.c   = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS)  -DPROGRAM_REVISION=$(PROGRAM_REVISION) -c
 COMPILE.cxx = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION) -c 
-COMPILE.cu  = $(NVCC) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION) --ptxas-options="-v" $(GENCODE_SM30) -c 
+COMPILE.cu  = $(NVCC) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION) --ptxas-options=-v --compiler-options '-fPIC' -c 
 LINK.c      = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS) $(LDFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION)
 LINK.cxx    = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -DPROGRAM_REVISION=$(PROGRAM_REVISION)
 

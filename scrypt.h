@@ -81,7 +81,7 @@ struct Words32 {
   uint32_t get(uint32_t i) const {
     if(i<16) return lo.w[i];
     else if(i<32) return hi.w[i-16];
-    else assert(false);
+    else {assert(false); return 0;}
   }
   void xor_other(const Words32& other) {
     for(int i=0; i<16; i++) lo.w[i]^=other.lo.w[i];

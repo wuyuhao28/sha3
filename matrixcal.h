@@ -11,7 +11,7 @@
 #include "seed.h"
 #include "RequestQueue.h"
 
-#include <cublas_v2.h> //cuda自带库函数
+#include <cublas_v2.h> //cuda锟皆达拷锟解函锟斤拷
 //#include <cublas.h> 
 #include <sys/time.h>
 #include <time.h>
@@ -23,8 +23,8 @@
 extern cublasHandle_t g_handle[6];
 extern int8_t* g_device_matList[6];
 extern uint8_t g_seed[32];
-extern cTaskQueue g_tskQueue[DEVICENUM];		//任务队列
-
+extern uint8_t g_results[32];
+extern SafeQueue<pTaskST> g_tskQueue[DEVICENUM];
 #define LOOP_COUNT		2
 #define SEQUENCE_COUNT	32
 
@@ -40,5 +40,7 @@ void iter(uint8_t *msg,uint8_t *g_seed, uint32_t len, uint8_t result[32], uint32
 
 Words32 extSeedCreate(uint8_t *seed);
 double GetMillsec();
+
+void* calculate_Thread(void *arg);
 
 #endif

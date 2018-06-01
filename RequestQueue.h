@@ -1,4 +1,4 @@
-/*ÈÎÎñÇëÇó¶ÓÁĞ
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //
 //
 */
@@ -40,8 +40,8 @@ private:
 	pTaskST m_pHeader;
 	pTaskST m_pTail;
 	int m_isize;
-
-	//pthread_mutex_t mutex;
+public:
+	static pthread_mutex_t mutex;
 };
 
 #endif
