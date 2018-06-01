@@ -31,12 +31,9 @@ void* ThreadUser( void* deviceids ) {
     int deviceid=*((int*)deviceids);
     printf("start:%d\n",deviceid);
     uint8_t firstret[32] = {0};
-    printf("test\n");
     uint32_t deviceidin=(uint32_t)deviceid;
     // get_hash_init();
-    printf("test0\n");
     get_hash(g_msg,g_seed,firstret,&deviceidin);//剔除第一次的时间
-    printf("test1\n");
     start = clock();
     for (int i = 0;i<1000; i++) {
       // uint8_t* ret=(uint8_t*)malloc(sizeof(uint8_t)*32);
@@ -44,7 +41,6 @@ void* ThreadUser( void* deviceids ) {
       
       uint32_t tmp=(uint32_t)deviceid;
       int diff=get_hash(g_msg,g_seed,ret,&tmp);
-          printf("test2\n");
       // for (int j = 0; j < 1; j++) {
       //   printf("%d 0x%02x\n",deviceid,ret[j]);
       // }

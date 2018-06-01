@@ -24,7 +24,6 @@ void cTaskQueue::InQueue(pTaskST pNode)
 {
 	pTaskST pNewNode = pNode;
 	pthread_mutex_lock(&mutex);
-	printf("InQueue test1.\n");
 	if (!m_pHeader)
 	{
 		m_pHeader = pNewNode;
@@ -35,7 +34,6 @@ void cTaskQueue::InQueue(pTaskST pNode)
 		m_pTail->pNext = pNewNode;
 		m_pTail = pNewNode;
 	}
-	printf("InQueue test2.\n");
 	m_isize++;
 	pthread_mutex_unlock(&mutex);
 
@@ -46,6 +44,7 @@ pTaskST cTaskQueue::OutQueue()
 	pTaskST pNewNode = NULL;
 
 	pthread_mutex_lock(&mutex);
+	printf("QutQueue test.\n");
 	printf("m_pHeader : %p\n", m_pHeader);
 	if (m_pHeader != NULL)
 	{
