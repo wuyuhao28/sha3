@@ -46,7 +46,7 @@ pTaskST cTaskQueue::OutQueue()
 	pTaskST pNewNode = NULL;
 
 	pthread_mutex_lock(&mutex);
-
+	printf("m_pHeader : %p\n", m_pHeader);
 	if (m_pHeader != NULL)
 	{
 		pNewNode = m_pHeader;

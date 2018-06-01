@@ -59,7 +59,7 @@ int get_hash_init(){
 	int threadID[DEVICENUM];
 	for (int i = 0; i < DEVICENUM; i++)
 	{
-		g_tskQueue[i].m_pHeader = NULL;
+		//g_tskQueue[i].m_pHeader = NULL;
 		threadID[i] = i;
 		if (pthread_create(&calculateThread[i], NULL, calculate_Thread, (void *)&(threadID[i])) != 0)
 		{
