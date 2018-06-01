@@ -5,13 +5,12 @@
 #include <string.h>
 #include <stdio.h>
 
-pthread_mutex_t cTaskQueue::mutex = PTHREAD_MUTEX_INITIALIZER;
-
 cTaskQueue::cTaskQueue(void)
 {
 	m_pHeader = NULL;
 	m_pTail = NULL;
 	m_isize =0;
+	mutex = PTHREAD_MUTEX_INITIALIZER;
 
 	pthread_mutex_init(&mutex,NULL);
 }

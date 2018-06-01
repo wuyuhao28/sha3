@@ -41,7 +41,7 @@ private:
 	pTaskST m_pTail;
 	int m_isize;
 public:
-	static pthread_mutex_t mutex;
+	pthread_mutex_t mutex;
 };
 
 #endif
