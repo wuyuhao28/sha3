@@ -30,7 +30,7 @@ typedef struct tag_stTaskST
     pTaskST Pop();
     pTaskST Front();
     pTaskST Back();
-    pTaskST Size();
+    //pTaskST Size();
     bool Empty();
   private:
     std::queue<pTaskST> queue;
@@ -78,9 +78,9 @@ typedef struct tag_stTaskST
     return queue.back();
   }
 
-  pTaskST SafeQueue::Size(){
-    return queue.size();
-  }
+  // pTaskST SafeQueue::Size(){
+  //   return queue.size();
+  // }
 
   bool SafeQueue::Empty(){
     return queue.empty() ? true : false;
