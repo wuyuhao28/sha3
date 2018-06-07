@@ -27,14 +27,14 @@ extern uint8_t g_results[32];
 //extern SafeQueue<pTaskST> g_tskQueue[DEVICENUM];
 // extern cTaskQueue g_tskQueue[DEVICENUM];
 // extern cTaskQueue g_retQueue;
-extern SafeQueue<tag_stTaskST*> g_tskQueue[DEVICENUM];
-extern SafeQueue<tag_stTaskST*> g_retQueue;
-extern SafeQueue<tag_stTaskST*> g_tskQueue1;
-extern SafeQueue<tag_stTaskST*> g_tskQueue2;
-extern SafeQueue<tag_stTaskST*> g_tskQueue3;
-extern SafeQueue<tag_stTaskST*> g_tskQueue4;
-extern SafeQueue<tag_stTaskST*> g_tskQueue5;
-extern SafeQueue<tag_stTaskST*> g_tskQueue0;
+extern SafeQueue g_tskQueue[DEVICENUM];
+extern SafeQueue g_retQueue;
+extern SafeQueue g_tskQueue1;
+extern SafeQueue g_tskQueue2;
+extern SafeQueue g_tskQueue3;
+extern SafeQueue g_tskQueue4;
+extern SafeQueue g_tskQueue5;
+extern SafeQueue g_tskQueue0;
 #define LOOP_COUNT		2
 #define SEQUENCE_COUNT	32
 

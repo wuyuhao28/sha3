@@ -18,15 +18,15 @@ double start=0;
 // cTaskQueue g_retQueue;
 int threadID[DEVICENUM];
 // template class threadsafe_queue<pTaskST> g_tskQueue[DEVICENUM];
-SafeQueue<tag_stTaskST*> g_tskQueue[DEVICENUM];
-SafeQueue<tag_stTaskST*> g_tskQueue1;
-SafeQueue<tag_stTaskST*> g_tskQueue2;
-SafeQueue<tag_stTaskST*> g_tskQueue3;
-SafeQueue<tag_stTaskST*> g_tskQueue4;
-SafeQueue<tag_stTaskST*> g_tskQueue5;
-SafeQueue<tag_stTaskST*> g_tskQueue0;
+SafeQueue g_tskQueue[DEVICENUM];
+SafeQueue g_tskQueue1;
+SafeQueue g_tskQueue2;
+SafeQueue g_tskQueue3;
+SafeQueue g_tskQueue4;
+SafeQueue g_tskQueue5;
+SafeQueue g_tskQueue0;
 
-SafeQueue<tag_stTaskST*> g_retQueue;
+SafeQueue g_retQueue;
 //SafeQueue<tag_stTaskST*> test;
 // threadsafe_queue<tag_stTaskST*> test;
 // typedef struct st_calculateThreadArg{
