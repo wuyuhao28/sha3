@@ -25,7 +25,7 @@ typedef struct tag_stTaskST
   public:
     SafeQueue() = default;
     virtual ~SafeQueue(){};
-    void Push(const pTaskST& t );
+    void Push(const pTaskST t );
     void Clear();
     pTaskST Pop();
     pTaskST Front();
@@ -33,7 +33,7 @@ typedef struct tag_stTaskST
     pTaskST Size();
     bool Empty();
   private:
-    std::queue queue;
+    std::queue<pTaskST> queue;
     mutable std::mutex q_mutex;
     mutable std::condition_variable q_cond;
   }; 
